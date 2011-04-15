@@ -125,7 +125,7 @@ After adapting the previous transaction manager configuration excerpt to suit th
 After right-clicking this XML configuration file in the Eclipse Package Explorer view, item menu  ''jPos Workflow -> view graph'' should show up. 
 
 Left-clicking it should open a jPos Workflow view with a graphical representation of the selected configuration :
-[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_dot_graphviz_view.jpg|align=center]]
+[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_dummy.jpg|align=center]]
 
 About this view : 
 *  in transaction manager configuration, if some groups are referenced, but not yet defined, the view shows them in red color, 
