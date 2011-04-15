@@ -1,0 +1,23 @@
+<!DOCTYPE SYSTEM [
+ <!ENTITY txnmgr_sub1      SYSTEM "txnmgr_sub1.inc">
+]> 
+
+<txnmgr name="kdoTxn" logger="Q2"	class="org.jpos.transaction.TransactionManager">
+
+	<participant class="org.jpos.my.Switch" logger="Q2">
+		<property name="0100" value="Authorization Response Log" selectCriterion="incoming message 0100" />
+		<property name="0200" value="Financial Response Log" selectCriterion="incoming message 0200" />
+		<property name="0220" value="Notification Response Log" selectCriterion="incoming message 0220" />
+		<property name="0221" value="Notification Response Log" selectCriterion="incoming message 0221" />
+		<property name="0420" value="Reversal Response Log" selectCriterion="incoming message 0420" />
+		<property name="0421" value="Reversal Response Log" selectCriterion="incoming message 0421" />
+		<property name="0500" value="BatchManagement Response Log" selectCriterion="incoming message 0500" />
+		<property name="0421" value="Reversal Response Log" selectCriterion="incoming message 0421" />
+		<property name="0800" value="NetworkManagement Response Log" selectCriterion="incoming message 0800" />
+	</participant>
+	
+	&txnmgr_sub1;
+	
+	<!-- TODO : complete configuration at will -->
+	
+</txnmgr>

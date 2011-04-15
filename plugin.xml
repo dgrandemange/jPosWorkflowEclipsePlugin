@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <extension
+         id="application"
+         point="org.eclipse.core.runtime.applications">
+      <application>
+         <run
+               class="org.jpos.jposext.jposworkflow.eclipse.Application">
+         </run>
+      </application>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            name="jPos Workflow Perspective"
+            class="org.jpos.jposext.jposworkflow.eclipse.Perspective"
+            id="org.jpos.jposext.jposworkflow.eclipse.perspective">
+      </perspective>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="org.jpos.jposext.jposworkflow.eclipse.MyGraphicalEditor"
+            default="true"
+            icon="noicon"
+            id="org.jpos.jposext.jposworkflow.eclipse.mygraphicaleditor"
+            name="JPosWorkflow"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            id="org.jpos.jposext.jposworkflow.eclipse.contribution1"
+            nameFilter="*.xml"
+            objectClass="org.eclipse.core.resources.IFile">
+         <menu
+               id="org.jpos.jposext.jposworkflow.eclipse.menu1"
+               label="jPos Workflow"
+               path="additions">
+            <separator name="group1"/>
+         </menu>
+         <action
+               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.NewAction"
+               enablesFor="1"
+               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.newAction"
+               label="view graph"
+               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>
+      </objectContribution>
+   </extension>
+
+</plugin>
