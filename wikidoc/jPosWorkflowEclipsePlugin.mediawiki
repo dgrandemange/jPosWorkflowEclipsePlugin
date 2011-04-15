@@ -1,14 +1,13 @@
-In [http://www.jpos.org/ jPos], the transaction manager component  takes care of ''driving'' the transaction.
-To do so,  it relies on smaller units called participants. Participants are components through which the transaction flow may pass. Thus, the jPos transaction manager implementation design enhances code reuse and componentization. The transaction manager provides also some routing functionalities thanks to the ''org.jpos.transaction.GroupSelector''  interface.
+== Primary needs ==
+In [http://www.jpos.org/ jPos], the transaction manager component  takes care of ''driving'' the transaction. To do so,  it relies on smaller units called participants. Participants are components through which the transaction flow may pass. Thus, the jPos transaction manager implementation design enhances code reuse and componentization. The transaction manager provides also some routing functionalities thanks to the ''org.jpos.transaction.GroupSelector''  interface.
 Transaction manager is configured via a dedicated XML configuration.
 See [http://www.jpos.org/products/proguide jPOS programmer's guide] §10 for more details.
 
-= Primary needs =
-The way a transaction is processed may vary based on many criteria.
-For example, the transaction type (activation, payment, cancellation ...) may change the way the transaction should be processed. Also, further in the processing, you may have to choose between different processing paths depending on many criteria : card's validity check result, acquirer response (acceptation, reject), ...
+The way a transaction is processed may vary, depending on many criteria.
+For instance, the transaction type (activation, payment, cancellation ...) may change the way the transaction should be processed. Also, further in the processing, you may have to choose between different processing paths depending on many criteria : card's validity check result, acquirer response (acceptation, reject), ...
 
 When wondering how to efficiently work on transaction manager configuration, and thinking about a process allowing to work incrementally on it so that it can easily be communicated to other people (maybe more business oriented people), one can not simply answer : edit transaction manager's XML configuration and it's done.
- 
+
 Having a graphical view would be much more talkative. Besides, a graphical representation (say a diagram state representation for instance) is easier to communicate to non developer people. Editing a workflow in an UML editor is a solution, but edition work needs to be done twice. And what if the workflow often changes ? This is not a very responsive process, with  the risk to loose informations. Eventually, it would be nice if we were able to generate a graphical view on the fly (and at will) straight from the XML transaction manager configuration itself.
 
 Thinking of a graphical representation as a state diagram along its ''states'' and ''transitions'', there would be the transaction participants as ''states'' . But what about ''transitions''? Nothing in a transaction manager configuration formally identifies transitions between a participant and a group. But, taking a further look at §10.8 of jPOS programmer's guide, the configuration sample clearly shows that some properties are used for this purpose and hold a ''transition'' function.  In this sample, we can see properties which gives a list of groups to pass through, depending on the message type (0100, 0200,...). Obviously, theses properties can be used as transitions.
@@ -17,20 +16,20 @@ Thinking of a graphical representation as a state diagram along its ''states'' a
 
 <participant class="org.jpos.my.Switch" logger="Q2">
 	
-	&lt;!--
+	< !--
 		If MTI is 0100, route to the following participants groups : 
 		- Authorization,
 		- Response,
 		- Log
-	--&gt;
+	-- >
 	<property name="0100" value="Authorization Response Log" />
 	
-	&lt;!--
+	< !--
 		If MTI is 0200, route to the following participants groups : 
 		- Financial,
 		- Response,
 		- Log
-	--&gt;
+	-- >
 	<property name="0200" value="Financial Response Log" />
 
 	<property name="0220" value="Notification Response Log" />
@@ -61,7 +60,7 @@ Thinking of a graphical representation as a state diagram along its ''states'' a
 ...
 </pre>
 
-= The jPos Workflow Eclipse plugin =
+== The jPos Workflow Eclipse plugin ==
 Keeping all of this in mind, a specific Eclipse plugin has been written which at this point provides  :
 * conversion of a transaction manager configuration into a directed graph model,
 * reduction of the previously generated directed graph,
@@ -118,7 +117,7 @@ After adapting the previous transaction manager configuration excerpt to suit th
 		
 	</group>
 	
-	&lt;!-- TODO :  configuration to complete --&lt;
+	<!-- TODO :  configuration to complete -->
 	
 </txnmgr>
 </pre>
@@ -126,7 +125,7 @@ After adapting the previous transaction manager configuration excerpt to suit th
 After right-clicking this XML configuration file in the Eclipse Package Explorer view, item menu  ''jPos Workflow -> view graph'' should show up. 
 
 Left-clicking it should open a jPos Workflow view with a graphical representation of the selected configuration :
-[[Image:workflowplugin_dummy.jpeg|align=center]]
+[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_dot_graphviz_view.jpg|align=center]]
 
 About this view : 
 *  in transaction manager configuration, if some groups are referenced, but not yet defined, the view shows them in red color, 
@@ -173,6 +172,6 @@ n2 -> n3 [label=""]
 </pre>
 
 and here is GraphViz rendering of this DOT source :
-[[Image:workflowplugin_dot_graphviz_view.jpeg|align=center]]
+[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_dot_graphviz_view.jpg|align=center]]
 
-You may use the [http://sourceforge.net/projects/eclipsegraphviz/ Eclipse GraphViz plugin] for rendering inside your Eclipse IDE. 
+You may install the [http://sourceforge.net/projects/eclipsegraphviz/ Eclipse GraphViz plugin] for rendering inside your Eclipse IDE.
