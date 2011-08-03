@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -115,6 +116,13 @@ public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 					String sSystemIdFile = systemIdFile.toURI().toURL()
 							.toString();
 					int lastIndex = sSystemIdFile.lastIndexOf(sCurrentDirURL);
+					
+					if (-1 == lastIndex) {
+						// On tente un URL decode de sSystemIdFile
+						sSystemIdFile=URLDecoder.decode(sSystemIdFile, "UTF-8");
+						lastIndex = sSystemIdFile.lastIndexOf(sCurrentDirURL);
+					}
+
 					if (-1 < lastIndex) {
 						entityUrl = base
 								+ sSystemIdFile.substring(sCurrentDirURL
