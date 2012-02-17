@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.jdom.Attribute;
@@ -18,13 +20,13 @@ import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.filter.ElementFilter;
 import org.jdom.input.SAXBuilder;
+import org.jpos.jposext.jposworkflow.io.EnclosedInputStream;
 import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 import org.jpos.jposext.jposworkflow.model.SelectCriterion;
 import org.jpos.jposext.jposworkflow.service.ITxnMgrConfigParser;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
 
 /**
  * Implémentation d'un parser de config de transaction manager utilisant la
@@ -38,7 +40,9 @@ import org.xml.sax.SAXException;
 public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 
 	public static final String DEFAULT_GROUP = "";
-
+	public static final String TXN_MGR_CONFIG__ROOT_ELEMENT = "txnmgr";
+	public static final String TXN_MGR_SUBCONFIG__ENTRYPOINTGROUP__NAMEEXTRACTIONREGEXP = "^(.*/)*([^/].*)\\.[^\\.]*$";
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -56,16 +60,20 @@ public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 
 		try {
 			Document doc = builder.build(is);
-			initParticipants(doc.getRootElement(), groups);
+			initParticipants(doc.getRootElement(), groups, null);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 		return groups;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jpos.jposext.jposworkflow.service.ITxnMgrConfigParser#parse(java.net.URL)
-	 */	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.jpos.jposext.jposworkflow.service.ITxnMgrConfigParser#parse(java.
+	 * net.URL)
+	 */
 	public Map<String, List<ParticipantInfo>> parse(URL url) {
 		Map<String, List<ParticipantInfo>> groups = new HashMap<String, List<ParticipantInfo>>();
 
@@ -75,6 +83,12 @@ public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 		builder.setFeature("http://apache.org/xml/features/xinclude", true);
 
 		String sUrl = url.toString();
+		String pathLastToken = null;
+		Pattern pattern = Pattern.compile(TXN_MGR_SUBCONFIG__ENTRYPOINTGROUP__NAMEEXTRACTIONREGEXP);
+		Matcher matcher = pattern.matcher(url.getPath());
+		if (matcher.matches()) {
+			pathLastToken = matcher.group(2);
+		}
 		// System.out.println(sUrl);
 
 		URL resolvedUrl = url;
@@ -96,9 +110,12 @@ public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 
 		builder.setEntityResolver(new EntityResolver() {
 
-			/* (non-Javadoc)
-			 * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String, java.lang.String)
-			 */			
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String,
+			 * java.lang.String)
+			 */
 			public InputSource resolveEntity(String publicId, String systemId)
 					throws SAXException, IOException {
 
@@ -116,10 +133,11 @@ public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 					String sSystemIdFile = systemIdFile.toURI().toURL()
 							.toString();
 					int lastIndex = sSystemIdFile.lastIndexOf(sCurrentDirURL);
-					
+
 					if (-1 == lastIndex) {
 						// On tente un URL decode de sSystemIdFile
-						sSystemIdFile=URLDecoder.decode(sSystemIdFile, "UTF-8");
+						sSystemIdFile = URLDecoder.decode(sSystemIdFile,
+								"UTF-8");
 						lastIndex = sSystemIdFile.lastIndexOf(sCurrentDirURL);
 					}
 
@@ -142,29 +160,80 @@ public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 			}
 		});
 
+		boolean JDOMExceptionOnFirstTry = false;
+
 		try {
 			InputStream is = resolvedUrl.openStream();
 			Document doc = builder.build(is);
-			initParticipants(doc.getRootElement(), groups);
+			initParticipants(doc.getRootElement(), groups, pathLastToken);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		} catch (JDOMException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
+			JDOMExceptionOnFirstTry = true;
+		}
+
+		if (JDOMExceptionOnFirstTry) {
+			try {
+				InputStream is = new EnclosedInputStream(String.format("<%s>",
+						TXN_MGR_CONFIG__ROOT_ELEMENT).getBytes(),
+						resolvedUrl.openStream(), String.format("</%s>",
+								TXN_MGR_CONFIG__ROOT_ELEMENT).getBytes());
+				Document doc = builder.build(is);
+				initParticipants(doc.getRootElement(), groups, pathLastToken);
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			} catch (JDOMException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
 		}
 
 		return groups;
-
 	}
 
 	protected void initParticipants(Element config,
-			Map<String, List<ParticipantInfo>> groups) {
+			Map<String, List<ParticipantInfo>> groups,
+			String entryPointGroupName) {
+		boolean entryPointIsAGroup = false;
+
 		groups.put(DEFAULT_GROUP, initGroup(config, DEFAULT_GROUP));
+
+		List<ParticipantInfo> defaultGroup = groups.get(DEFAULT_GROUP);
+
+		if (0 == defaultGroup.size()) {
+			if (null != entryPointGroupName) {
+				// Try to match a group which is named the same as the
+				// entryPointGroupName parameter
+				Iterator iter = config.getChildren("group").iterator();
+				while (iter.hasNext()) {
+					Element e = (Element) iter.next();
+					String name = e.getAttributeValue("name");
+					if (entryPointGroupName.equals(name)) {
+						entryPointIsAGroup = true;
+						Iterator iterParticipant = e.getChildren("participant").iterator();
+						while (iterParticipant.hasNext()) {
+							defaultGroup.add(getParticipantInfo(
+									(Element) iterParticipant.next(), entryPointGroupName));
+						}
+						break;
+					}
+				}
+			}
+		}
+
 		Iterator iter = config.getChildren("group").iterator();
 		while (iter.hasNext()) {
 			Element e = (Element) iter.next();
 			String name = e.getAttributeValue("name");
+
+			if (entryPointIsAGroup) {
+				if (entryPointGroupName.equals(name)) {
+					continue;
+				}
+			}
+
 			if (name == null)
 				throw new RuntimeException("missing group name");
 			if (groups.get(name) != null) {
@@ -196,9 +265,10 @@ public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 			Element propertyElt = (Element) descendants.next();
 			Attribute attribute = propertyElt.getAttribute("selectCriterion");
 			if (attribute != null) {
-				SelectCriterion criterion = new SelectCriterion(propertyElt
-						.getAttributeValue("name"), propertyElt
-						.getAttributeValue("value"), attribute.getValue());
+				SelectCriterion criterion = new SelectCriterion(
+						propertyElt.getAttributeValue("name"),
+						propertyElt.getAttributeValue("value"),
+						attribute.getValue());
 				selectCriteria.put(criterion.getName(), criterion);
 			}
 		}

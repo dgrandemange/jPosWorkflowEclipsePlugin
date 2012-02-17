@@ -48,5 +48,24 @@
                menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>
       </objectContribution>
    </extension>
-
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            id="org.jpos.jposext.jposworkflow.eclipse.contribution2"
+            nameFilter="*.inc"
+            objectClass="org.eclipse.core.resources.IFile">
+         <menu
+               id="org.jpos.jposext.jposworkflow.eclipse.menu1"
+               label="jPos Workflow"
+               path="additions">
+            <separator name="group1"/>
+         </menu>
+         <action
+               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.NewAction"
+               enablesFor="1"
+               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.newAction"
+               label="view graph"
+               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>
+      </objectContribution>
+   </extension>
 </plugin>

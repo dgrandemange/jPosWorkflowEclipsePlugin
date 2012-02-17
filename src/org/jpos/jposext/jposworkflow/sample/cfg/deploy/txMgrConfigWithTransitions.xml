@@ -1,5 +1,5 @@
 <!DOCTYPE SYSTEM [
- <!ENTITY txnmgr_sub1      SYSTEM "txnmgr_sub1.inc">
+ <!ENTITY Financial      SYSTEM "Financial.inc">
 ]> 
 
 <txnmgr name="kdoTxn" logger="Q2"	class="org.jpos.transaction.TransactionManager">
@@ -16,7 +16,7 @@
 		<property name="0800" value="NetworkManagement Response Log" selectCriterion="incoming message 0800" />
 	</participant>
 	
-	&txnmgr_sub1;
+	&Financial;
 	
 	<!-- TODO : complete configuration at will -->
 	

@@ -25,7 +25,8 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
             IWorkbenchPage page = PlatformUI.getWorkbench()
                     .getActiveWorkbenchWindow().getActivePage();
             TxnMgrConfigParserImpl txnMgrConfigParserImpl = new TxnMgrConfigParserImpl();
-            Map<String, List<ParticipantInfo>> parsed = txnMgrConfigParserImpl.parse(this.getClass().getResource("/org/jpos/jposext/jposworkflow/sample/cfg/deploy/txMgrConfigWithTransitions.xml"));            
+            //Map<String, List<ParticipantInfo>> parsed = txnMgrConfigParserImpl.parse(this.getClass().getResource("/org/jpos/jposext/jposworkflow/sample/cfg/deploy/txMgrConfigWithTransitions.xml"));            
+            Map<String, List<ParticipantInfo>> parsed = txnMgrConfigParserImpl.parse(this.getClass().getResource("/org/jpos/jposext/jposworkflow/sample/cfg/deploy/Financial.inc"));
             page.openEditor(new MyEditorInput("JPosWorkFlowGraph", parsed), MyGraphicalEditor.ID, false);
         } catch (Exception e) {
             e.printStackTrace();
