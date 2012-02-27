@@ -159,4 +159,12 @@ public class MyGraphicalEditor extends GraphicalEditor {
 	public boolean isSaveOnCloseNeeded() {
 		return false;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.EditorPart#setPartName(java.lang.String)
+	 */
+	@Override
+	public void setPartName(String partName) {
+		super.setPartName(partName);
+	}
 }

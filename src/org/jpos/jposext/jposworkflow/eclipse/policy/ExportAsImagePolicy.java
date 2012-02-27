@@ -5,6 +5,9 @@ import org.eclipse.gef.Request;
 import org.eclipse.gef.RootEditPart;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.editpolicies.AbstractEditPolicy;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
+import org.jpos.jposext.jposworkflow.eclipse.MyEditorInput;
 import org.jpos.jposext.jposworkflow.eclipse.command.ExportAsImageCommand;
 
 public class ExportAsImagePolicy extends AbstractEditPolicy {
@@ -21,6 +24,11 @@ public class ExportAsImagePolicy extends AbstractEditPolicy {
 		RootEditPart rootEditPart = this.getHost().getRoot();
 		
 		command.setEditPart(rootEditPart);
+		
+        IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+        MyEditorInput editorInput = (MyEditorInput) page.getActiveEditor().getEditorInput();
+		
+		command.setDefaultName(editorInput.getName());
 		
 		return command;
 	}

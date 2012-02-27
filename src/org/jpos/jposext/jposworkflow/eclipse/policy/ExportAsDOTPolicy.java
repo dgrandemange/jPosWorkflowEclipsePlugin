@@ -1,6 +1,5 @@
 package org.jpos.jposext.jposworkflow.eclipse.policy;
 
-
 import org.eclipse.gef.Request;
 import org.eclipse.gef.RootEditPart;
 import org.eclipse.gef.commands.Command;
@@ -20,14 +19,17 @@ public class ExportAsDOTPolicy extends AbstractEditPolicy {
 
 	protected Command createExportAsDOTCommand(Request renameRequest) {
 		ExportAsDOTCommand command = new ExportAsDOTCommand();
-		
-        IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-        MyEditorInput editorInput = (MyEditorInput) page.getActiveEditor().getEditorInput();
+
+		IWorkbenchPage page = PlatformUI.getWorkbench()
+				.getActiveWorkbenchWindow().getActivePage();
+		MyEditorInput editorInput = (MyEditorInput) page.getActiveEditor()
+				.getEditorInput();
 		command.setJPosTxnMgrGroups(editorInput.getJPosTxnMgrGroups());
-		
-		RootEditPart rootEditPart = this.getHost().getRoot();		
+
+		RootEditPart rootEditPart = this.getHost().getRoot();
 		command.setEditPart(rootEditPart);
-		
+		command.setDefaultName(editorInput.getName());
+
 		return command;
 	}
 }

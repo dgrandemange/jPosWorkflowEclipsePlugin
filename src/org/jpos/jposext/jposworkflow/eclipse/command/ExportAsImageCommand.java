@@ -3,8 +3,6 @@ package org.jpos.jposext.jposworkflow.eclipse.command;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.eclipse.draw2d.Graphics;
 import org.eclipse.draw2d.IFigure;
@@ -59,6 +57,8 @@ public class ExportAsImageCommand extends Command {
 	}
 
 	private EditPart editPart;
+	
+	private String defaultName;
 
 	private void createImage() {
 
@@ -126,21 +126,21 @@ public class ExportAsImageCommand extends Command {
 		FileDialog fileDialog = new FileDialog(shell, SWT.SAVE);
 
 		String[] filterExtensions = new String[SwtImageFormatEnum.values().length];
-		String fileName = "";
+		
 		for (SwtImageFormatEnum swtImageFormat : SwtImageFormatEnum.values()) {
 			filterExtensions[swtImageFormat.ordinal()] = "."
-					+ swtImageFormat.name().toLowerCase();
-			fileName += "*" + filterExtensions[swtImageFormat.ordinal()] + ";";
-		}
+					+ swtImageFormat.name().toLowerCase();			
+		}		
 		fileDialog.setFilterExtensions(filterExtensions);
-		//fileDialog.setFileName(fileName);
+		String fileName = defaultName + filterExtensions[0];
+		fileDialog.setFileName(fileName);
 
 		String filePath = fileDialog.open();
 
-		Pattern pattern = Pattern.compile("(?<=\\.).*$");
-		Matcher matcher = pattern.matcher(filePath);
-		if (matcher.find()) {
-			String fileExtension = matcher.group();
+		int lastIndex = filePath.lastIndexOf('.');
+		
+		if ((lastIndex > 0) && (lastIndex+1 < filePath.length())) {
+			String fileExtension = filePath.substring(lastIndex+1);
 			SwtImageFormatEnum selectedSwtImageFormatEnum = SwtImageFormatEnum
 					.valueOf(fileExtension.toUpperCase());
 			format.setWrapped(selectedSwtImageFormatEnum.getSwtFormat());
@@ -150,6 +150,13 @@ public class ExportAsImageCommand extends Command {
 			throw new RuntimeException("Unknonwn file extension");
 		}
 
+	}
+
+	/**
+	 * @param defaultName the defaultName to set
+	 */
+	public void setDefaultName(String defaultName) {
+		this.defaultName = defaultName;
 	}
 
 }

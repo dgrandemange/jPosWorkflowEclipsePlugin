@@ -69,11 +69,12 @@ public class NewAction implements IObjectActionDelegate {
 		}
 
 		if (parsed != null) {
-			MyEditorInput editorInput = new MyEditorInput("JPosWorkFlowGraph",
+			MyEditorInput editorInput = new MyEditorInput(file.getName(),
 					parsed);
 			editorInput.setProject(file.getProject());
 			try {
-				page.openEditor(editorInput, MyGraphicalEditor.ID, false);
+				MyGraphicalEditor openEditor = (MyGraphicalEditor) page.openEditor(editorInput, MyGraphicalEditor.ID, false);
+				openEditor.setPartName(file.getName());
 			} catch (PartInitException e) {
 				e.printStackTrace();
 			}

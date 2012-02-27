@@ -18,12 +18,13 @@ import org.jpos.jposext.jposworkflow.service.support.GraphConverterServiceImpl;
 import org.jpos.jposext.jposworkflow.service.support.GraphReducerImpl;
 import org.jpos.jposext.jposworkflow.service.support.TxnMgrGroupsConverterImpl;
 
-
 public class ExportAsDOTCommand extends Command {
 
 	private Map<String, List<ParticipantInfo>> jPosTxnMgrGroups;
 
 	private EditPart editPart;
+
+	private String defaultName;
 
 	private void createDOTFile() {
 
@@ -31,7 +32,7 @@ public class ExportAsDOTCommand extends Command {
 		Graph genGraph = txnMgrGroupsConverter.toGraph(jPosTxnMgrGroups);
 
 		Graph reducedGraph = (new GraphReducerImpl()).reduce(genGraph);
-		
+
 		GraphConverterServiceImpl graphConverterService = new GraphConverterServiceImpl();
 
 		Shell shell = new Shell(editPart.getViewer().getControl().getDisplay());
@@ -41,8 +42,10 @@ public class ExportAsDOTCommand extends Command {
 			result = new FileOutputStream(getSaveFilePath(shell,
 					(GraphicalViewer) editPart.getViewer()));
 			pw = new PrintWriter(result);
-			graphConverterService.convertGraphToDOT(
-					"jPos Workflow Eclipse Plugin DOT Export", reducedGraph, pw);
+			graphConverterService
+					.convertGraphToDOT(
+							"jPos Workflow Eclipse Plugin DOT Export",
+							reducedGraph, pw);
 			pw.flush();
 			pw.close();
 		} catch (FileNotFoundException e) {
@@ -72,6 +75,7 @@ public class ExportAsDOTCommand extends Command {
 
 		String[] filterExtensions = new String[] { "*.dot" };
 
+		fileDialog.setFileName(defaultName + ".dot");
 		fileDialog.setFilterExtensions(filterExtensions);
 
 		String filePath = fileDialog.open();
@@ -82,6 +86,14 @@ public class ExportAsDOTCommand extends Command {
 	public void setJPosTxnMgrGroups(
 			Map<String, List<ParticipantInfo>> jPosTxnMgrGroups) {
 		this.jPosTxnMgrGroups = jPosTxnMgrGroups;
+	}
+
+	/**
+	 * @param defaultName
+	 *            the defaultName to set
+	 */
+	public void setDefaultName(String defaultName) {
+		this.defaultName = defaultName;
 	}
 
 }
