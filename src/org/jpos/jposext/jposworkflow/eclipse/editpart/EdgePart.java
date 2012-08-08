@@ -1,21 +1,8 @@
-/*
- * Created on 17 juil. 08 by dgrandemange
- *
- * Copyright (c) 2005 Setib
- * All rights reserved.
- *
- * This software is the confidential and proprietary information of
- * Setib ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Setib.
- */
 package org.jpos.jposext.jposworkflow.eclipse.editpart;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-
 
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
@@ -24,15 +11,22 @@ import org.eclipse.draw2d.MouseEvent;
 import org.eclipse.draw2d.MouseMotionListener;
 import org.eclipse.draw2d.PolylineConnection;
 import org.eclipse.draw2d.graph.Edge;
-import org.eclipse.gef.EditPart;
 import org.eclipse.gef.Request;
 import org.eclipse.gef.RequestConstants;
 import org.eclipse.gef.editparts.AbstractConnectionEditPart;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 import org.jpos.jposext.jposworkflow.eclipse.figure.EdgeFigure;
+import org.jpos.jposext.jposworkflow.eclipse.figure.TransitionInfoFigure;
+import org.jpos.jposext.jposworkflow.model.Transition;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class EdgePart extends AbstractConnectionEditPart {
 
 	//private IFigure contentPane;
@@ -113,26 +107,74 @@ public class EdgePart extends AbstractConnectionEditPart {
 		
 		Edge model = (Edge) getModel();
 		
-		String transitionDesc = (String) model.data;
+		Transition t = (Transition) model.data;
+		
 		Color cl = DEFAULT_EDGE_COLOR;
-		if (!("".equals(transitionDesc))) {
 			
-			// ConnectionEndpointLocator locator = new
-			// ConnectionEndpointLocator(figure, true);
-			// locator.setUDistance(10);
-			// locator.setVDistance(0);
+		// ConnectionEndpointLocator locator = new
+		// ConnectionEndpointLocator(figure, true);
+		// locator.setUDistance(10);
+		// locator.setVDistance(0);
 
-			ImageData imgData = new ImageData(this.getClass()
-					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/information.png"));
-			Image img = new Image(Display.getCurrent(), imgData);
+		ImageData imgData = new ImageData(this.getClass()
+				.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/information.png"));
+		Image img = new Image(Display.getCurrent(), imgData);
 
-			Label transitionInfoIndicator = new Label("", img);
-			MidpointLocator locator = new MidpointLocator(figure, 0);
-			figure.add(transitionInfoIndicator, locator);
+		Label transitionInfoIndicator = new Label("", img);
+		MidpointLocator locator = new MidpointLocator(figure, 0);
+		figure.add(transitionInfoIndicator, locator);
 
-			Label transitionLabel = new Label(transitionDesc);
-			figure.setToolTip(transitionLabel);
+		Label transitionLabel = null;
+		String transitionName = t.getName();
+		if (!("".equals(transitionName))) {
+			transitionLabel = new Label(String.format("- %s -", transitionName));
+		} else {
+			transitionLabel = new Label(String.format("- %s -", "<default>"));
 		}
+		Font transitionLabelFont = new Font(null, "Arial", 10, SWT.BOLD);
+		transitionLabel.setFont(transitionLabelFont);
+		TransitionInfoFigure transitionInfoFigure = new TransitionInfoFigure(transitionLabel);
+		
+		String transitionDesc = t.getDesc();
+		Label transitionDescLabel;
+		if ((null != transitionDesc) && (transitionDesc.trim().length() > 0)) {
+			transitionDescLabel = new Label(transitionDesc);
+			
+		} else {
+			transitionDescLabel = new Label("<default>");
+		}
+		Font transitionDescLabelFont = new Font(null, "Arial", 8, SWT.ITALIC);
+		transitionDescLabel.setFont(transitionDescLabelFont);
+		transitionInfoFigure.getTransitionDescFigureCompartment().add(transitionDescLabel);
+		
+		ImageData ctxAttrGuaranteedImgData = new ImageData(
+				this.getClass()
+						.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-guaranteed.png"));
+		Image ctxAttrGuaranteedImg = new Image(Display.getCurrent(), ctxAttrGuaranteedImgData);
+		if (null != t.getGuaranteedCtxAttributes() && t.getGuaranteedCtxAttributes().size() > 0) {
+			for (String guaranteedCtxAttr : t.getGuaranteedCtxAttributes()) {
+				transitionInfoFigure.getGuaranteedAttrsFigureCompartment().add(new Label(guaranteedCtxAttr, ctxAttrGuaranteedImg));
+			}
+		}
+		else {
+			transitionInfoFigure.getGuaranteedAttrsFigureCompartment().add(new Label("<no guaranteed attributes>", ctxAttrGuaranteedImg));
+		}
+		
+		ImageData ctxAttrOptionalImgData = new ImageData(
+				this.getClass()
+						.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-optional.png"));
+		Image ctxAttrOptionalImg = new Image(Display.getCurrent(), ctxAttrOptionalImgData);		
+		if (null != t.getOptionalCtxAttributes() && t.getOptionalCtxAttributes().size() > 0) {
+			for (String optionalCtxAttr : t.getOptionalCtxAttributes()) {
+				transitionInfoFigure.getOptionalAttrsFigureCompartment().add(new Label(optionalCtxAttr, ctxAttrOptionalImg));
+			}
+		}
+		else {
+			transitionInfoFigure.getOptionalAttrsFigureCompartment().add(new Label("<no optional attributes>", ctxAttrOptionalImg));
+		}
+		
+		figure.setToolTip(transitionInfoFigure);
+		
 		org.eclipse.swt.graphics.Color fg = new org.eclipse.swt.graphics.Color(
 				Display.getCurrent(), cl.getRed(), cl.getGreen(), cl.getBlue());
 		figure.setForegroundColor(fg);

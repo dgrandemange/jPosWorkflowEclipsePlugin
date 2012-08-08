@@ -2,6 +2,10 @@ package org.jpos.jposext.jposworkflow.model;
 
 import java.util.List;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class Graph {
 	
 	public static final String INITIAL_NODE_TYPE="INITIAL_NODE";

@@ -1,5 +1,9 @@
 package org.jpos.jposext.jposworkflow.model;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class NodeWrapper {
 	private Node wrapped;
 

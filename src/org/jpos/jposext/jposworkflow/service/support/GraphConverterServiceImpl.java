@@ -12,7 +12,10 @@ import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 import org.jpos.jposext.jposworkflow.model.Transition;
 import org.jpos.jposext.jposworkflow.service.IGraphConverterService;
 
-
+/**
+ * @author dgrandemange
+ *
+ */
 public class GraphConverterServiceImpl implements IGraphConverterService {
 
 	/* (non-Javadoc)

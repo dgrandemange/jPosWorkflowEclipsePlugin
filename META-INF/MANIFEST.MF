@@ -3,15 +3,26 @@ Bundle-ManifestVersion: 2
 Bundle-Name: jPos Workflow viewer Plug-in
 Bundle-SymbolicName: org.jpos.jposext.jposworkflow;singleton:=true
 Bundle-Version: 1.0.4
-Bundle-ClassPath: .,lib/jdom-1.0.jar,lib/commons-logging.jar
+Bundle-ClassPath: .,
+ lib/jdom-1.0.jar,
+ lib/commons-logging.jar,
+ lib/context-mgmt-annotation-1.0-SNAPSHOT.jar
 Bundle-Activator: org.jpos.jposext.jposworkflow.eclipse.Activator
 Bundle-Localization: plugin
 Export-Package: org.jpos.jposext.jposworkflow.eclipse,
  org.jpos.jposext.jposworkflow.eclipse.editpart,
  org.jpos.jposext.jposworkflow.eclipse.figure
-Require-Bundle: org.eclipse.core.runtime,org.eclipse.gef,org.eclipse.core.resources,org.eclipse.jdt.core,org.eclipse.ui,org.eclipse.ui.ide,
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.gef,
+ org.eclipse.core.resources,
+ org.eclipse.jdt.core,
  org.eclipse.ui,
- org.eclipse.core.runtime
+ org.eclipse.ui.ide,
+ org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.jdt.ui;bundle-version="3.7.0",
+ org.eclipse.ui.ide.application;bundle-version="1.0.300",
+ org.eclipse.jdt.launching;bundle-version="3.6.0"
 Eclipse-LazyStart: true
 Eclipse-BuddyPolicy: app, registered
 Bundle-ActivationPolicy: lazy

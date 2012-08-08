@@ -7,6 +7,10 @@ import org.eclipse.gef.ui.actions.GEFActionConstants;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class AppContextMenuProvider extends ContextMenuProvider {
 
 	private ActionRegistry actionRegistry;

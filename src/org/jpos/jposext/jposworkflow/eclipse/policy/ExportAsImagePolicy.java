@@ -1,6 +1,5 @@
 package org.jpos.jposext.jposworkflow.eclipse.policy;
 
-
 import org.eclipse.gef.Request;
 import org.eclipse.gef.RootEditPart;
 import org.eclipse.gef.commands.Command;
@@ -10,6 +9,10 @@ import org.eclipse.ui.PlatformUI;
 import org.jpos.jposext.jposworkflow.eclipse.MyEditorInput;
 import org.jpos.jposext.jposworkflow.eclipse.command.ExportAsImageCommand;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class ExportAsImagePolicy extends AbstractEditPolicy {
 
 	public Command getCommand(Request request) {

@@ -4,8 +4,10 @@ import org.jpos.jposext.jposworkflow.eclipse.model.NodeDataWrapper;
 import org.jpos.jposext.jposworkflow.model.NodeNatureEnum;
 import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 
-
-
+/**
+ * @author dgrandemange
+ *
+ */
 public class ModelDataHelper {
 	public static String getLabelFromNodeData(Object data) {
 		NodeDataWrapper dataWrapper = (NodeDataWrapper) data;

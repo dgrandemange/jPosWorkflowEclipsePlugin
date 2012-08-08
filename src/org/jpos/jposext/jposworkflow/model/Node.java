@@ -3,6 +3,10 @@ package org.jpos.jposext.jposworkflow.model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class Node {
 
 	private NodeNatureEnum nodeNature = NodeNatureEnum.COMMON; 

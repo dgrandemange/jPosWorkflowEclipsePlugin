@@ -5,6 +5,10 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     public ApplicationActionBarAdvisor(IActionBarConfigurer configurer) {

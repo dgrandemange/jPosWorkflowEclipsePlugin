@@ -1,15 +1,3 @@
-/*
- * Created on 17 juil. 08 by dgrandemange
- *
- * Copyright (c) 2005 Setib
- * All rights reserved.
- *
- * This software is the confidential and proprietary information of
- * Setib ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Setib.
- */
 package org.jpos.jposext.jposworkflow.eclipse;
 
 import java.util.List;
@@ -21,7 +9,10 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 
-
+/**
+ * @author dgrandemange
+ *
+ */
 public class MyEditorInput implements IEditorInput {
 
 	public String name = null;

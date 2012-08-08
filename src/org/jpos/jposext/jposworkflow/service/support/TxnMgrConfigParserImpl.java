@@ -42,7 +42,7 @@ public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 	public static final String DEFAULT_GROUP = "";
 	public static final String TXN_MGR_CONFIG__ROOT_ELEMENT = "txnmgr";
 	public static final String TXN_MGR_SUBCONFIG__ENTRYPOINTGROUP__NAMEEXTRACTIONREGEXP = "^(.*/)*([^/].*)\\.[^\\.]*$";
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -84,7 +84,8 @@ public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 
 		String sUrl = url.toString();
 		String pathLastToken = null;
-		Pattern pattern = Pattern.compile(TXN_MGR_SUBCONFIG__ENTRYPOINTGROUP__NAMEEXTRACTIONREGEXP);
+		Pattern pattern = Pattern
+				.compile(TXN_MGR_SUBCONFIG__ENTRYPOINTGROUP__NAMEEXTRACTIONREGEXP);
 		Matcher matcher = pattern.matcher(url.getPath());
 		if (matcher.matches()) {
 			pathLastToken = matcher.group(2);
@@ -212,10 +213,12 @@ public class TxnMgrConfigParserImpl implements ITxnMgrConfigParser {
 					String name = e.getAttributeValue("name");
 					if (entryPointGroupName.equals(name)) {
 						entryPointIsAGroup = true;
-						Iterator iterParticipant = e.getChildren("participant").iterator();
+						Iterator iterParticipant = e.getChildren("participant")
+								.iterator();
 						while (iterParticipant.hasNext()) {
 							defaultGroup.add(getParticipantInfo(
-									(Element) iterParticipant.next(), entryPointGroupName));
+									(Element) iterParticipant.next(),
+									entryPointGroupName));
 						}
 						break;
 					}

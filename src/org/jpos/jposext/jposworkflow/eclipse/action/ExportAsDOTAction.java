@@ -8,6 +8,10 @@ import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.ui.actions.SelectionAction;
 import org.eclipse.ui.IWorkbenchPart;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class ExportAsDOTAction extends SelectionAction {
 
 	public ExportAsDOTAction(IWorkbenchPart part) {

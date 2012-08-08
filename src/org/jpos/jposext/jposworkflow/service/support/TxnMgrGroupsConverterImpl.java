@@ -17,7 +17,6 @@ import org.jpos.jposext.jposworkflow.model.SelectCriterion;
 import org.jpos.jposext.jposworkflow.model.Transition;
 import org.jpos.jposext.jposworkflow.service.ITxnMgrGroupsConverter;
 
-
 /**
  * Class helper
  * 
@@ -62,12 +61,13 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 			return graph;
 		}
 
+		String transitionName = "";
 		String transitionDesc = "";
 		Counter transitionSequence = (new TxnMgrGroupsConverterImpl()).new Counter();
 		Counter nodeSequence = (new TxnMgrGroupsConverterImpl()).new Counter();
 		NodeWrapper pLastNodeWrapper = new NodeWrapper(initialNode);
 		Stack<String> groupsStack = new Stack<String>();
-		core(graph, reducedGroups, rootGroup, pLastNodeWrapper, transitionDesc,
+		core(graph, reducedGroups, rootGroup, pLastNodeWrapper, transitionName, transitionDesc,
 				transitionSequence, nodeSequence, groupsStack);
 		doFinalTransitions(graph, transitionSequence);
 
@@ -76,7 +76,7 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 
 	protected void core(Graph graph,
 			Map<String, List<ParticipantInfo>> pgroups,
-			List<ParticipantInfo> pgroup, NodeWrapper pLastNodeWrapper,
+			List<ParticipantInfo> pgroup, NodeWrapper pLastNodeWrapper, String pTransitionName,
 			String pTransitionDesc, Counter transitionSequence,
 			Counter nodeSequence, Stack<String> groupsStack) {
 
@@ -88,7 +88,7 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 			target.setParticipant(participant);
 
 			createTransition(graph, String.format("t%d", transitionSequence
-					.inc()), source, target, pTransitionDesc);
+					.inc()), source, target, pTransitionName, pTransitionDesc);
 			pTransitionDesc = "";
 			if (!(participant.isGroup())) {
 				pLastNodeWrapper.setWrapped(target);
@@ -102,7 +102,7 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 						pgroups.put(groupId, group);
 					}
 
-					core(graph, pgroups, group, pLastNodeWrapper, "",
+					core(graph, pgroups, group, pLastNodeWrapper, "", "",
 							transitionSequence, nodeSequence, groupsStack);
 				}
 			} else {
@@ -113,6 +113,7 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 							.clone();
 
 					SelectCriterion criterion = entry.getValue();
+					String transitionName = criterion.getName();
 					String transitionDesc = criterion.getDesc();
 
 					NodeWrapper nodeWrapper = new NodeWrapper(target);
@@ -138,7 +139,7 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 						pgroups.put(groupId, group);
 					}
 
-					core(graph, pgroups, group, nodeWrapper, transitionDesc,
+					core(graph, pgroups, group, nodeWrapper, transitionName, transitionDesc,
 							transitionSequence, nodeSequence, groupsStackInter);
 				}
 			}
@@ -165,7 +166,7 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 
 		for (Entry<String, Node> entry : notSourceNodes.entrySet()) {
 			createTransition(graph, String.format("t%d", transitionSequence
-					.inc()), entry.getValue(), graph.getFinalNode(), "");
+					.inc()), entry.getValue(), graph.getFinalNode(), "", "");
 		}
 	}
 
@@ -249,12 +250,13 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 		}
 		ParticipantInfo clonePInfo = new ParticipantInfo(pInfo
 				.getClazz(), pInfo.getGroupName(), cloneSelectCriteria);
+		clonePInfo.setUpdCtxAttrByTransId(pInfo.getUpdCtxAttrByTransId());
 		return clonePInfo;
 	}
 	
 	protected void createTransition(Graph graph, String tid, Node source,
-			Node target, String tdesc) {
-		Transition t = new Transition(tid, source, target);
+			Node target, String tname, String tdesc) {
+		Transition t = new Transition(tid, tname, source, target);
 		t.setDesc(tdesc);
 		graph.getLstTransitions().add(t);
 	}

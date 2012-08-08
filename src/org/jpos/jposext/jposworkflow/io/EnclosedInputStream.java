@@ -3,6 +3,10 @@ package org.jpos.jposext.jposworkflow.io;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class EnclosedInputStream extends InputStream {
 	private enum State {
 		PREFIX, STREAM, SUFFIX, EOF

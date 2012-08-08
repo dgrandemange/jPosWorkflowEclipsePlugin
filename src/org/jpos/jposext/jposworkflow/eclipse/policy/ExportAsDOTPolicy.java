@@ -9,6 +9,10 @@ import org.eclipse.ui.PlatformUI;
 import org.jpos.jposext.jposworkflow.eclipse.MyEditorInput;
 import org.jpos.jposext.jposworkflow.eclipse.command.ExportAsDOTCommand;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class ExportAsDOTPolicy extends AbstractEditPolicy {
 
 	public Command getCommand(Request request) {

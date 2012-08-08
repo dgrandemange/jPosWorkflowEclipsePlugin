@@ -1,20 +1,7 @@
-/*
- * Created on 17 juil. 08 by dgrandemange
- *
- * Copyright (c) 2005 Setib
- * All rights reserved.
- *
- * This software is the confidential and proprietary information of
- * Setib ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Setib.
- */
 package org.jpos.jposext.jposworkflow.eclipse.editpart;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -44,10 +31,12 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
+import org.jpos.jposext.jposworkflow.eclipse.MyEditorInput;
 import org.jpos.jposext.jposworkflow.eclipse.figure.FinalNodeFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.InitialNodeFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.NodeFigure;
@@ -56,7 +45,10 @@ import org.jpos.jposext.jposworkflow.eclipse.model.NodeDataWrapper;
 import org.jpos.jposext.jposworkflow.model.NodeNatureEnum;
 import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 
-
+/**
+ * @author dgrandemange
+ *
+ */
 public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart {
 
 	/*
@@ -72,15 +64,19 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 
 		if (NodeNatureEnum.INITIAL.equals(nodeNature)) {
 			ImageFigure imgFigure = new InitialNodeFigure();
-			ImageData imgData = new ImageData(this.getClass()
-					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/initial-state.gif"));
+			ImageData imgData = new ImageData(
+					this.getClass()
+							.getResourceAsStream(
+									"/org/jpos/jposext/jposworkflow/eclipse/res/img/initial-state.gif"));
 			Image img = new Image(Display.getCurrent(), imgData);
 			imgFigure.setImage(img);
 			figure = imgFigure;
 		} else if (NodeNatureEnum.FINAL.equals(nodeNature)) {
 			ImageFigure imgFigure = new FinalNodeFigure();
-			ImageData imgData = new ImageData(this.getClass()
-					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/final-state.gif"));
+			ImageData imgData = new ImageData(
+					this.getClass()
+							.getResourceAsStream(
+									"/org/jpos/jposext/jposworkflow/eclipse/res/img/final-state.gif"));
 			Image img = new Image(Display.getCurrent(), imgData);
 			imgFigure.setImage(img);
 			figure = imgFigure;
@@ -146,12 +142,15 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 
 			if (ModelDataHelper.isGroup(model.data)
 					&& (!(ModelDataHelper.isDynaGroup(model.data)))) {
-				ImageData imgData = new ImageData(this.getClass()
-						.getResourceAsStream(
-								String.format("/org/jpos/jposext/jposworkflow/eclipse/res/img/group%s.png", undef)));
+				ImageData imgData = new ImageData(
+						this.getClass()
+								.getResourceAsStream(
+										String.format(
+												"/org/jpos/jposext/jposworkflow/eclipse/res/img/group%s.png",
+												undef)));
 				Image img = new Image(Display.getCurrent(), imgData);
-				labelId = new Label(ModelDataHelper
-						.getLabelFromNodeData(model.data), img);
+				labelId = new Label(
+						ModelDataHelper.getLabelFromNodeData(model.data), img);
 
 				String groupName = ModelDataHelper.getGroupName(model.data);
 				String className = ModelDataHelper.getClassName(model.data);
@@ -160,14 +159,16 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 						className));
 				nodeFigure.setToolTip(tipLabel);
 			} else {
-				ImageData imgData = new ImageData(this.getClass()
-						.getResourceAsStream(
-								String.format("/org/jpos/jposext/jposworkflow/eclipse/res/img/participant%s.png",
-										undef)));
+				ImageData imgData = new ImageData(
+						this.getClass()
+								.getResourceAsStream(
+										String.format(
+												"/org/jpos/jposext/jposworkflow/eclipse/res/img/participant%s.png",
+												undef)));
 				Image img = new Image(Display.getCurrent(), imgData);
 
-				labelId = new Label(ModelDataHelper
-						.getLabelFromNodeData(model.data), img);
+				labelId = new Label(
+						ModelDataHelper.getLabelFromNodeData(model.data), img);
 				String className = ModelDataHelper.getClassName(model.data);
 				Label tipLabel = new Label(String.format(
 						"Participant : class=%s", className));
@@ -247,12 +248,11 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 	@Override
 	public void performRequest(Request req) {
 		/*
-		MessageBox msgBox = new MessageBox(new Shell(), SWT.OK
-				| SWT.ICON_INFORMATION);
-		msgBox.setMessage(req.getType().toString());
-		msgBox.open();		
-		*/
-		
+		 * MessageBox msgBox = new MessageBox(new Shell(), SWT.OK |
+		 * SWT.ICON_INFORMATION); msgBox.setMessage(req.getType().toString());
+		 * msgBox.open();
+		 */
+
 		if (req.getType().equals(RequestConstants.REQ_OPEN)) {
 
 			try {
@@ -260,13 +260,22 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 						.getActiveWorkbenchWindow();
 				IWorkbenchPage page = window.getActivePage();
 
-				NodeDataWrapper ndw = (NodeDataWrapper) ((Node) this
-						.getModel()).data;				
+				IProject project = ((DirectedGraphPart) getParent())
+						.getProject();
+
+				if (null == project) {
+					project = getCurrentProject();
+					if (null == project) {
+						return;
+					}
+				}
+
+				NodeDataWrapper ndw = (NodeDataWrapper) ((Node) this.getModel()).data;
 
 				if (!(NodeNatureEnum.COMMON.equals(ndw.getNodeNature()))) {
 					return;
 				}
-				
+
 				ParticipantInfo pInfo = ndw.getpInfo();
 				String className = pInfo.getClazz();
 
@@ -276,33 +285,92 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 				if (null == path) {
 					return;
 				}
-				
-				IProject project = ((DirectedGraphPart) getParent())
-						.getProject();
-				
-				if (null == project) {
-					return;
-				}
-				
+
 				IJavaProject jProject = (IJavaProject) project
 						.getNature(JavaCore.NATURE_ID);
 				IJavaElement jElt = jProject.findElement(path);
+				IFile fileToBeOpened = null;
 
-				IPath path2 = jElt.getPath();
+				if (null != jElt) {
+					IPath path2 = jElt.getPath();
 
-				IFile fileToBeOpened = project.getWorkspace().getRoot()
-						.getFile(path2);
+					fileToBeOpened = project.getWorkspace().getRoot()
+							.getFile(path2);
+				}
 
-				if (null == fileToBeOpened) {
-					return;
-				}											
-				
-				IEditorInput editorInput = new FileEditorInput(fileToBeOpened);
-				IEditorDescriptor desc = PlatformUI.getWorkbench()
-						.getEditorRegistry().getDefaultEditor(
-								fileToBeOpened.getName());
+//				if (null == fileToBeOpened) {
+//					String value = className;
+//					value = NodePart.trimNonAlphaChars(value);
+//					IJavaProject javaProject = JavaCore.create(project);
+//					IPackageFragmentRoot srcEntryDft = null;
+//					IPackageFragmentRoot[] roots = javaProject
+//							.getPackageFragmentRoots();
+//					for (int i = 0; i < roots.length; i++) {
+//						if (roots[i].getKind() == IPackageFragmentRoot.K_SOURCE) {
+//							srcEntryDft = roots[i];
+//							break;
+//						}
+//					}
+//
+//					IPackageFragmentRoot packageRoot;
+//
+//					if (srcEntryDft != null)
+//						packageRoot = srcEntryDft;
+//					else
+//						packageRoot = javaProject
+//								.getPackageFragmentRoot(javaProject
+//										.getResource());
+//
+//					String packageNameString = null;
+//					int index = value.lastIndexOf("."); //$NON-NLS-1$
+//					if (index == -1) {
+//						className = value;
+//					} else {
+//						className = value.substring(index + 1);
+//						packageNameString = value.substring(0, index);
+//					}
+//					IPackageFragment packageName = null;
+//					if (packageNameString != null && packageRoot != null) {
+//						IFolder packageFolder = project
+//								.getFolder(packageNameString);
+//						packageName = packageRoot
+//								.getPackageFragment(packageFolder
+//										.getProjectRelativePath().toOSString());
+//					}
+//
+//					NewClassWizardPage wzPage = new NewClassWizardPage();
+//					wzPage.init(StructuredSelection.EMPTY);
+//					wzPage.setTypeName(className, true);
+//					wzPage.setPackageFragmentRoot(packageRoot, true);
+//					wzPage.setPackageFragment(packageName, true);
+//					
+//					Wizard wizard = new Wizard() {
+//
+//						@Override
+//						public boolean performFinish() {
+//							return true;
+//						}
+//					};
+//					wizard.setNeedsProgressMonitor(false);
+//					wizard.addPage(wzPage);
+//					
+//					WizardDialog wd = new WizardDialog(getDisplay()
+//							.getActiveShell(), wizard);
+//					wd.setTitle(wizard.getWindowTitle());
+//					wd.open();
+//
+//					
+//					return;
+//				}
 
-				page.openEditor(editorInput, desc.getId());
+				if (null != fileToBeOpened) {
+					IEditorInput editorInput = new FileEditorInput(fileToBeOpened);
+					IEditorDescriptor desc = PlatformUI.getWorkbench()
+							.getEditorRegistry()
+							.getDefaultEditor(fileToBeOpened.getName());
+	
+					page.openEditor(editorInput, desc.getId());
+				}
 			} catch (CoreException e) {
 				e.printStackTrace();
 			}
@@ -312,6 +380,65 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 
 	final protected String getJavaClassPathFromFullClassName(String className) {
 		return className.replaceAll("\\.", "/") + ".java";
+	}
+
+//	public void openWizard(String id) {
+//		// First see if this is a "new wizard".
+//		IWizardDescriptor descriptor = PlatformUI.getWorkbench()
+//				.getNewWizardRegistry().findWizard(id);
+//		// If not check if it is an "import wizard".
+//		if (descriptor == null) {
+//			descriptor = PlatformUI.getWorkbench().getImportWizardRegistry()
+//					.findWizard(id);
+//		}
+//		// Or maybe an export wizard
+//		if (descriptor == null) {
+//			descriptor = PlatformUI.getWorkbench().getExportWizardRegistry()
+//					.findWizard(id);
+//		}
+//		try {
+//			// Then if we have a wizard, open it.
+//			if (descriptor != null) {
+//				IWizard wizard = descriptor.createWizard();
+//				WizardDialog wd = new WizardDialog(getDisplay()
+//						.getActiveShell(), wizard);
+//				wd.setTitle(wizard.getWindowTitle());
+//				wd.open();
+//			}
+//		} catch (CoreException e) {
+//			e.printStackTrace();
+//		}
+//	}
+
+	public static Display getDisplay() {
+		Display display = Display.getCurrent();
+		// may be null if outside the UI thread
+		if (display == null)
+			display = Display.getDefault();
+		return display;
+	}
+
+	public static String trimNonAlphaChars(String value) {
+		value = value.trim();
+		while (value.length() > 0 && !Character.isLetter(value.charAt(0)))
+			value = value.substring(1, value.length());
+		int loc = value.indexOf(":"); //$NON-NLS-1$
+		if (loc != -1 && loc > 0)
+			value = value.substring(0, loc);
+		else if (loc == 0)
+			value = ""; //$NON-NLS-1$
+		return value;
+	}
+
+	public IProject getCurrentProject() {
+		IEditorPart editorPart = PlatformUI.getWorkbench()
+				.getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+		if (editorPart != null) {
+			MyEditorInput input = (MyEditorInput) editorPart.getEditorInput();
+			IProject activeProject = input.getProject();
+			return activeProject;
+		}
+		return null;
 	}
 
 }

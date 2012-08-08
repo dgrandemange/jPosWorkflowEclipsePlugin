@@ -3,6 +3,10 @@ package org.jpos.jposext.jposworkflow.eclipse.model;
 import org.jpos.jposext.jposworkflow.model.NodeNatureEnum;
 import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class NodeDataWrapper {
 	
 	private NodeNatureEnum nodeNature;

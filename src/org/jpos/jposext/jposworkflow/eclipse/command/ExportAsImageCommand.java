@@ -22,6 +22,10 @@ import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class ExportAsImageCommand extends Command {
 
 	class MyIntWrapper {

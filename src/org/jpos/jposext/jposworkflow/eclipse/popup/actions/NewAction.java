@@ -22,7 +22,10 @@ import org.jpos.jposext.jposworkflow.eclipse.MyGraphicalEditor;
 import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 import org.jpos.jposext.jposworkflow.service.support.TxnMgrConfigParserImpl;
 
-
+/**
+ * @author dgrandemange
+ *
+ */
 public class NewAction implements IObjectActionDelegate {
 
 	private ISelection selection;

@@ -12,7 +12,10 @@ import org.eclipse.ui.application.WorkbenchWindowAdvisor;
 import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 import org.jpos.jposext.jposworkflow.service.support.TxnMgrConfigParserImpl;
 
-
+/**
+ * @author dgrandemange
+ *
+ */
 public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
     /*

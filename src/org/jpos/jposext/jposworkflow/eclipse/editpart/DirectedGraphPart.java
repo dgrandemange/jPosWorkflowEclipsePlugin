@@ -1,15 +1,3 @@
-/*
- * Created on 17 juil. 08 by dgrandemange
- *
- * Copyright (c) 2005 Setib
- * All rights reserved.
- *
- * This software is the confidential and proprietary information of
- * Setib ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Setib.
- */
 package org.jpos.jposext.jposworkflow.eclipse.editpart;
 
 import java.util.ArrayList;
@@ -23,6 +11,10 @@ import org.jpos.jposext.jposworkflow.eclipse.figure.DirectedGraphFigure;
 import org.jpos.jposext.jposworkflow.eclipse.policy.ExportAsDOTPolicy;
 import org.jpos.jposext.jposworkflow.eclipse.policy.ExportAsImagePolicy;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class DirectedGraphPart extends AbstractGraphicalEditPart {
 
     IProject project;

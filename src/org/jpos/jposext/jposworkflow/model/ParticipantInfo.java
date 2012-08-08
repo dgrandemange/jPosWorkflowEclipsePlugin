@@ -2,6 +2,10 @@ package org.jpos.jposext.jposworkflow.model;
 
 import java.util.Map;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class ParticipantInfo {
 
 	public static final String UNDEFINED_CLAZZ = "<undefined>";
@@ -13,6 +17,11 @@ public class ParticipantInfo {
 	private String groupName;
 
 	private Map<String, SelectCriterion> selectCriteria;
+	
+	/**
+	 * Updated context attributes by transition id 
+	 */
+	private Map<String, String[]> updCtxAttrByTransId;
 
 	public ParticipantInfo() {
 		super();
@@ -55,6 +64,20 @@ public class ParticipantInfo {
 
 	public void setGroupName(String groupName) {
 		this.groupName = groupName;
+	}
+
+	/**
+	 * @return the updCtxAttrByTransId
+	 */
+	public Map<String, String[]> getUpdCtxAttrByTransId() {
+		return updCtxAttrByTransId;
+	}
+
+	/**
+	 * @param updCtxAttrByTransId the updCtxAttrByTransId to set
+	 */
+	public void setUpdCtxAttrByTransId(Map<String, String[]> updCtxAttrByTransId) {
+		this.updCtxAttrByTransId = updCtxAttrByTransId;
 	}
 
 }

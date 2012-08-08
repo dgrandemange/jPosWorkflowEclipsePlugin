@@ -18,6 +18,10 @@ import org.jpos.jposext.jposworkflow.service.support.GraphConverterServiceImpl;
 import org.jpos.jposext.jposworkflow.service.support.GraphReducerImpl;
 import org.jpos.jposext.jposworkflow.service.support.TxnMgrGroupsConverterImpl;
 
+/**
+ * @author dgrandemange
+ *
+ */
 public class ExportAsDOTCommand extends Command {
 
 	private Map<String, List<ParticipantInfo>> jPosTxnMgrGroups;

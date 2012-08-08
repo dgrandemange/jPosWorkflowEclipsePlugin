@@ -8,6 +8,10 @@ import org.eclipse.ui.PlatformUI;
 /**
  * This class controls all aspects of the application's execution
  */
+/**
+ * @author dgrandemange
+ *
+ */
 public class Application implements IPlatformRunnable {
 
 	/* (non-Javadoc)

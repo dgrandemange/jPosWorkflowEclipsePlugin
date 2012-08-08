@@ -4,7 +4,10 @@ import java.io.PrintWriter;
 
 import org.jpos.jposext.jposworkflow.model.Graph;
 
-
+/**
+ * @author dgrandemange
+ *
+ */
 public interface IGraphConverterService {
 	
 	/**
