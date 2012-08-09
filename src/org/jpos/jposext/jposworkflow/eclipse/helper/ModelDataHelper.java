@@ -6,7 +6,7 @@ import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 
 /**
  * @author dgrandemange
- *
+ * 
  */
 public class ModelDataHelper {
 	public static String getLabelFromNodeData(Object data) {
@@ -99,5 +99,14 @@ public class ModelDataHelper {
 			}
 		}
 		return res;
+	}
+
+	public static ParticipantInfo getWrappedParticipantInfo(Object data) {
+		ParticipantInfo pInfo = null;
+		if (null != data) {
+			NodeDataWrapper dataWrapper = (NodeDataWrapper) data;
+			pInfo = dataWrapper.getpInfo();
+		}
+		return pInfo;
 	}
 }

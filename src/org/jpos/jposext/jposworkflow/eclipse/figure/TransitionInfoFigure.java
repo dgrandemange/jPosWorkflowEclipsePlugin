@@ -13,6 +13,7 @@ import org.eclipse.swt.graphics.Color;
  */
 public class TransitionInfoFigure extends Figure {
 	public static Color classColor = new Color(null, 255, 255, 206);
+	
 	private CompartmentFigure transitionDescFigure = new CompartmentFigure();
 	private CompartmentFigure guaranteedAttrsFigure = new CompartmentFigure();
 	private CompartmentFigure optionalAttrsFigure = new CompartmentFigure();

@@ -334,22 +334,28 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			
 			// Compute guaranteed attributes commonly shared between current node's all parent transitions
 			sharedGuaranteedAttrsBetweenParentTransitions = new HashSet<String>();
+			boolean firstPass = true;
 			for (Transition transition : lstTransitionsAsDest) {
 				if (null != transition.getOptionalCtxAttributes()) {
 					sharedAllAttrsBetweenParentTransitions.addAll(transition.getOptionalCtxAttributes());
 				}
 				
-				if (null != transition.getGuaranteedCtxAttributes()) {						
-					
-					sharedAllAttrsBetweenParentTransitions.addAll(transition.getGuaranteedCtxAttributes());
-					
-					if (sharedGuaranteedAttrsBetweenParentTransitions.size() == 0) {							
-						sharedGuaranteedAttrsBetweenParentTransitions.addAll(transition.getGuaranteedCtxAttributes());							
-					}
-					else {
-						sharedGuaranteedAttrsBetweenParentTransitions.retainAll(transition.getGuaranteedCtxAttributes());
-					}
+				List<String> currentTransitionGuaranteedCtxAttributes = transition.getGuaranteedCtxAttributes();
+				
+				if (null == currentTransitionGuaranteedCtxAttributes) {
+					currentTransitionGuaranteedCtxAttributes = new ArrayList<String>();
 				}
+				
+				sharedAllAttrsBetweenParentTransitions.addAll(currentTransitionGuaranteedCtxAttributes);
+				
+				if (firstPass) {							
+					sharedGuaranteedAttrsBetweenParentTransitions.addAll(currentTransitionGuaranteedCtxAttributes);							
+				}
+				else {
+					sharedGuaranteedAttrsBetweenParentTransitions.retainAll(currentTransitionGuaranteedCtxAttributes);
+				}
+				
+				firstPass = false;
 			}
 
 			// Compute attributes NOT shared between current node's all parent transitions

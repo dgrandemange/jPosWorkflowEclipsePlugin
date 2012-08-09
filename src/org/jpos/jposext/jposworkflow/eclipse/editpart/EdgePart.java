@@ -124,12 +124,17 @@ public class EdgePart extends AbstractConnectionEditPart {
 		MidpointLocator locator = new MidpointLocator(figure, 0);
 		figure.add(transitionInfoIndicator, locator);
 
+		ImageData transitionImgData = new ImageData(
+				this.getClass()
+						.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/transition.png"));
+		Image transitionImg = new Image(Display.getCurrent(), transitionImgData);			
+		
 		Label transitionLabel = null;
 		String transitionName = t.getName();
 		if (!("".equals(transitionName))) {
-			transitionLabel = new Label(String.format("- %s -", transitionName));
+			transitionLabel = new Label(String.format("%s", transitionName), transitionImg);
 		} else {
-			transitionLabel = new Label(String.format("- %s -", "<default>"));
+			transitionLabel = new Label(String.format("%s", "<default>"), transitionImg);
 		}
 		Font transitionLabelFont = new Font(null, "Arial", 10, SWT.BOLD);
 		transitionLabel.setFont(transitionLabelFont);
@@ -143,7 +148,7 @@ public class EdgePart extends AbstractConnectionEditPart {
 		} else {
 			transitionDescLabel = new Label("<default>");
 		}
-		Font transitionDescLabelFont = new Font(null, "Arial", 8, SWT.ITALIC);
+		Font transitionDescLabelFont = new Font(null, "Arial", 10, SWT.ITALIC);
 		transitionDescLabel.setFont(transitionDescLabelFont);
 		transitionInfoFigure.getTransitionDescFigureCompartment().add(transitionDescLabel);
 		
@@ -157,7 +162,10 @@ public class EdgePart extends AbstractConnectionEditPart {
 			}
 		}
 		else {
-			transitionInfoFigure.getGuaranteedAttrsFigureCompartment().add(new Label("<no guaranteed attributes>", ctxAttrGuaranteedImg));
+			Font nonGuranteedAttrLabelFont = new Font(null, "Arial", 10, SWT.ITALIC);
+			Label nonGuranteedAttrlabel = new Label("<no guaranteed attributes>", ctxAttrGuaranteedImg);
+			nonGuranteedAttrlabel.setFont(nonGuranteedAttrLabelFont);
+			transitionInfoFigure.getGuaranteedAttrsFigureCompartment().add(nonGuranteedAttrlabel);
 		}
 		
 		ImageData ctxAttrOptionalImgData = new ImageData(
@@ -170,7 +178,10 @@ public class EdgePart extends AbstractConnectionEditPart {
 			}
 		}
 		else {
-			transitionInfoFigure.getOptionalAttrsFigureCompartment().add(new Label("<no optional attributes>", ctxAttrOptionalImg));
+			Font noOptionalAttrlabelFont = new Font(null, "Arial", 10, SWT.ITALIC);
+			Label noOptionalAttrlabel = new Label("<no optional attributes>", ctxAttrOptionalImg);
+			noOptionalAttrlabel.setFont(noOptionalAttrlabelFont);
+			transitionInfoFigure.getOptionalAttrsFigureCompartment().add(noOptionalAttrlabel);
 		}
 		
 		figure.setToolTip(transitionInfoFigure);
