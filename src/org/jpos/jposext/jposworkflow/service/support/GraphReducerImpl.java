@@ -13,7 +13,6 @@ import org.jpos.jposext.jposworkflow.model.Node;
 import org.jpos.jposext.jposworkflow.model.Transition;
 import org.jpos.jposext.jposworkflow.service.IGraphReducer;
 
-
 /**
  * Implémentation de base d'un réducteur de graphe partant du noeud final pour
  * remonter les noeuds parents et mutualiser les noeuds traversés qui sont
@@ -35,55 +34,57 @@ public class GraphReducerImpl implements IGraphReducer {
 
 	class SpecialTransition extends Transition {
 		public int hashCode() {
-		    // On choisit les deux nombres impairs
-		    int result = 7;
-		    final int multiplier = 17;
-		    
-		    // Pour chaque attribut, on calcule le hashcode
-		    // que l'on ajoute au résultat après l'avoir multiplié
-		    // par le nombre "multiplieur" :
-		    result = multiplier*result + getSource().hashCode();
-		    result = multiplier*result + getTarget().hashCode();
-		    
-		    // On retourne le résultat :
-		    return result;
+			// On choisit les deux nombres impairs
+			int result = 7;
+			final int multiplier = 17;
+
+			// Pour chaque attribut, on calcule le hashcode
+			// que l'on ajoute au résultat après l'avoir multiplié
+			// par le nombre "multiplieur" :
+			result = multiplier * result + getSource().hashCode();
+			result = multiplier * result + getTarget().hashCode();
+
+			// On retourne le résultat :
+			return result;
 		}
 
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
-	            return true;
-	        if (obj == null)
-	            return false;
-	        if (getClass() != obj.getClass())
-	            return false;
-	        final Transition other = (Transition) obj;
-	        
-	        if (getSource() == null) {
-	            if (other.getSource() != null) {
-	                return false;
-	            }
-	        }
-	        else if (!(getSource().equals(other.getSource()))) {
-	        	return false;
-	        }
-	        
-	        if (getTarget() == null) {
-	            if (other.getTarget() != null) {
-	                return false;
-	            }
-	        }
-	        else if (!(getTarget().equals(other.getTarget()))) {
-	        	return false;
-	        }	        
-	        
-	        return true;
-		}		
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			final Transition other = (Transition) obj;
+
+			if (getSource() == null) {
+				if (other.getSource() != null) {
+					return false;
+				}
+			} else if (!(getSource().equals(other.getSource()))) {
+				return false;
+			}
+
+			if (getTarget() == null) {
+				if (other.getTarget() != null) {
+					return false;
+				}
+			} else if (!(getTarget().equals(other.getTarget()))) {
+				return false;
+			}
+
+			return true;
+		}
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.jpos.jposext.jposworkflow.service.IGraphReducer#reduce(org.jpos.jposext.jposworkflow.model.Graph)
-	 */	
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.jpos.jposext.jposworkflow.service.IGraphReducer#reduce(org.jpos.jposext
+	 * .jposworkflow.model.Graph)
+	 */
 	public Graph reduce(Graph graph) {
 		Map<String, Integer> lstTypeIdByType = new HashMap<String, Integer>();
 		Map<Integer, Map<List<Integer>, List<Node>>> lstNodesSharingSameCumulTypes = new TreeMap<Integer, Map<List<Integer>, List<Node>>>(
@@ -93,7 +94,7 @@ public class GraphReducerImpl implements IGraphReducer {
 					 * @param arg0
 					 * @param arg1
 					 * @return
-					 */					
+					 */
 					public int compare(Integer arg0, Integer arg1) {
 						return arg1 - arg0;
 					}
@@ -130,32 +131,65 @@ public class GraphReducerImpl implements IGraphReducer {
 		Map<SpecialTransition, SpecialTransition> uniqTransitionsMap = new HashMap<SpecialTransition, SpecialTransition>();
 		for (Transition t : graph.getLstTransitions()) {
 			SpecialTransition tInter = new SpecialTransition();
-			
+
 			tInter.setId(t.getId());
 			tInter.setSource(t.getSource());
 			tInter.setTarget(t.getTarget());
+			tInter.setName(t.getName());
 			tInter.setDesc(t.getDesc());
-			
+
 			uniqTransitionsMap.put(tInter, tInter);
 		}
 
 		List<Transition> uniqTransitionsList = new ArrayList<Transition>();
-		for (Entry<SpecialTransition, SpecialTransition> entry : uniqTransitionsMap.entrySet()) {
-			Transition t =entry.getKey();
-			
+		for (Entry<SpecialTransition, SpecialTransition> entry : uniqTransitionsMap
+				.entrySet()) {
+			Transition t = entry.getKey();
+
 			Transition tInter = new Transition();
-			
+
 			tInter.setId(t.getId());
 			tInter.setSource(t.getSource());
 			tInter.setTarget(t.getTarget());
-			tInter.setDesc(t.getDesc());	
-			
+			tInter.setName(t.getName());
+			tInter.setDesc(t.getDesc());
+
 			uniqTransitionsList.add(tInter);
 		}
 
 		graph.setLstTransitions(uniqTransitionsList);
-		
+
+		recomputeNodesTransitions(graph);
+
 		return graph;
+	}
+
+	protected void recomputeNodesTransitions(Graph graph) {
+		List<Transition> lstTransitions = graph.getLstTransitions();
+
+		// First reset
+		for (Transition t : lstTransitions) {
+			t.getSource().setLstTransitionsAsDest(new ArrayList<Transition>());
+			t.getSource()
+					.setLstTransitionsAsSource(new ArrayList<Transition>());
+			t.getTarget().setLstTransitionsAsDest(new ArrayList<Transition>());
+			t.getTarget()
+					.setLstTransitionsAsSource(new ArrayList<Transition>());
+		}
+
+		// Then recompute
+		for (Transition t : lstTransitions) {
+			List<Transition> lstTransitionsAsSource = t.getSource()
+					.getLstTransitionsAsSource();
+			if (!lstTransitionsAsSource.contains(t)) {
+				lstTransitionsAsSource.add(t);
+			}
+			
+			List<Transition> lstTransitionsAsDest = t.getTarget().getLstTransitionsAsDest();
+			if (!lstTransitionsAsDest.contains(t)) {
+				lstTransitionsAsDest.add(t);
+			}
+		}
 	}
 
 	protected void classifyNodesByPathInversedTraversal(

@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Stack;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
@@ -109,13 +109,10 @@ public class MyGraphicalEditor extends GraphicalEditor {
 
 		TxnMgrGroupsConverterImpl converter = new TxnMgrGroupsConverterImpl();
 		Graph graphInter1 = converter.toGraph(jPosTxnMgrGroups);
-
-		updateGraphTransitionsWithContextMgmtInfo(graphInter1);
 		
-//		GraphReducerImpl reducer = new GraphReducerImpl();
-//		Graph graphInter2 = reducer.reduce(graphInter1);
-
-		Graph graphInter2 = graphInter1;
+		GraphReducerImpl reducer = new GraphReducerImpl();
+		Graph graphInter2 = reducer.reduce(graphInter1);
+		updateReducedGraphTransitionsWithContextMgmtInfo(graphInter2);		
 		
 		Map<String, Node> mapNodes = new HashMap<String, Node>();
 		for (Transition t : graphInter2.getLstTransitions()) {
@@ -293,11 +290,11 @@ public class MyGraphicalEditor extends GraphicalEditor {
 		}
 	}
 
-	protected void updateGraphTransitionsWithContextMgmtInfo(Graph graph) {
-		updateGraphTransitionsWithContextMgmtInfo(graph, null, new Stack<List<String>>());
+	protected void updateReducedGraphTransitionsWithContextMgmtInfo(Graph graph) {
+		updateReducedGraphTransitionsWithContextMgmtInfo(graph, null);
 	}	
-	
-	protected void updateGraphTransitionsWithContextMgmtInfo(Graph graph, org.jpos.jposext.jposworkflow.model.Node currentNode, Stack<List<String>> ctxAttrListStack) {
+
+	protected void updateReducedGraphTransitionsWithContextMgmtInfo(Graph graph, org.jpos.jposext.jposworkflow.model.Node currentNode) {
 		if (null == graph) {
 			return;
 		}
@@ -310,6 +307,76 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			currentNode = graph.getInitialNode();
 		}
 		
+		boolean doReturn=false;
+		
+		HashSet<String> sharedGuaranteedAttrsBetweenParentTransitions;
+		HashSet<String> sharedOptionalAttrsBetweenParentTransitions;
+		
+		List<Transition> lstTransitionsAsDest = currentNode.getLstTransitionsAsDest();
+		// How many transitions are referencing the current node ?		
+		if (lstTransitionsAsDest.size() > 1) {
+			// Several transitions are referencing the current node
+			
+			// Check for all transitions with current node as destination have their context mgmt info populated. Otherwise, return		
+			for (Transition transition : lstTransitionsAsDest) {
+					if (null == transition.getGuaranteedCtxAttributes()) {
+						doReturn =true;
+						break;
+					}
+			}
+			
+			if (doReturn) {
+				System.out.println(String.format("Stop on group=%s,class=%s,referenced by %d transitions", currentNode.getParticipant().getGroupName(), currentNode.getParticipant().getClazz(), lstTransitionsAsDest.size()));				
+				return;
+			}
+			
+			HashSet<String> sharedAllAttrsBetweenParentTransitions = new HashSet<String>();
+			
+			// Compute guaranteed attributes commonly shared between current node's all parent transitions
+			sharedGuaranteedAttrsBetweenParentTransitions = new HashSet<String>();
+			for (Transition transition : lstTransitionsAsDest) {
+				if (null != transition.getOptionalCtxAttributes()) {
+					sharedAllAttrsBetweenParentTransitions.addAll(transition.getOptionalCtxAttributes());
+				}
+				
+				if (null != transition.getGuaranteedCtxAttributes()) {						
+					
+					sharedAllAttrsBetweenParentTransitions.addAll(transition.getGuaranteedCtxAttributes());
+					
+					if (sharedGuaranteedAttrsBetweenParentTransitions.size() == 0) {							
+						sharedGuaranteedAttrsBetweenParentTransitions.addAll(transition.getGuaranteedCtxAttributes());							
+					}
+					else {
+						sharedGuaranteedAttrsBetweenParentTransitions.retainAll(transition.getGuaranteedCtxAttributes());
+					}
+				}
+			}
+
+			// Compute attributes NOT shared between current node's all parent transitions
+			sharedOptionalAttrsBetweenParentTransitions = new HashSet<String>();
+			for (String attr : sharedAllAttrsBetweenParentTransitions) {
+				if (!(sharedGuaranteedAttrsBetweenParentTransitions.contains(attr))) {
+					sharedOptionalAttrsBetweenParentTransitions.add(attr);
+				}
+			}
+			
+		}
+		else if (lstTransitionsAsDest.size() == 1) {
+			// One transition only is referencing the current node
+			Transition t = lstTransitionsAsDest.get(0);
+			
+			sharedGuaranteedAttrsBetweenParentTransitions = new HashSet<String>();			
+			sharedGuaranteedAttrsBetweenParentTransitions.addAll(t.getGuaranteedCtxAttributes());
+
+			sharedOptionalAttrsBetweenParentTransitions = new HashSet<String>();			
+			sharedOptionalAttrsBetweenParentTransitions.addAll(t.getOptionalCtxAttributes());
+		}
+		else {
+			// There isn't any transition referencing the current node (i.e. initial node of the graph)
+			sharedGuaranteedAttrsBetweenParentTransitions = new HashSet<String>();
+			sharedOptionalAttrsBetweenParentTransitions = new HashSet<String>();
+		}
+
 		String[] ctxAttrSetByDefault = null;
 		ParticipantInfo currentNodeParticipant = currentNode.getParticipant();
 		Map<String, String[]> currNodeUpdCtxAttrByTransNameMap = null;
@@ -318,7 +385,7 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			if (null != currNodeUpdCtxAttrByTransNameMap) {
 				ctxAttrSetByDefault = currNodeUpdCtxAttrByTransNameMap.get(UpdateContextRule.DEFAULT_ID);
 			}
-		}
+		}		
 		
 		for (Transition transition : currentNode.getLstTransitionsAsSource()) {
 			String transitionName = transition.getName();
@@ -327,28 +394,29 @@ public class MyGraphicalEditor extends GraphicalEditor {
 				ctxAttrSetForTransName = currNodeUpdCtxAttrByTransNameMap.get(transitionName);
 			}
 			
-			List<String> ctxAttributes = new ArrayList<String>();
+			HashSet<String> ctxAttributes = new HashSet<String>();
+			
 			if (null != ctxAttrSetByDefault) {
 				Collections.addAll(ctxAttributes, ctxAttrSetByDefault);
 			}
+			
 			if (null != ctxAttrSetForTransName) {
 				Collections.addAll(ctxAttributes, ctxAttrSetForTransName);
 			}
 			
-			List<String> cumulatedCtxAttributes = new ArrayList<String>();
-			if (!ctxAttrListStack.isEmpty()) {
-				for (List<String> currList : ctxAttrListStack) {
-					cumulatedCtxAttributes.addAll(currList);
-				}
-			}
-			cumulatedCtxAttributes.addAll(ctxAttributes);
-			transition.setGuaranteedCtxAttributes(cumulatedCtxAttributes);			
+			transition.setGuaranteedCtxAttributes(new ArrayList<String>());
+			transition.getGuaranteedCtxAttributes().addAll(sharedGuaranteedAttrsBetweenParentTransitions);
+			transition.getGuaranteedCtxAttributes().addAll(ctxAttributes);
+			Collections.sort(transition.getGuaranteedCtxAttributes());
 			
-			ctxAttrListStack.push(ctxAttributes);
-			updateGraphTransitionsWithContextMgmtInfo(graph, transition.getTarget(), ctxAttrListStack);
-			ctxAttrListStack.pop();
+			transition.setOptionalCtxAttributes(new ArrayList<String>());
+			transition.getOptionalCtxAttributes().addAll(sharedOptionalAttrsBetweenParentTransitions);
+			Collections.sort(transition.getOptionalCtxAttributes());
+			
+			updateReducedGraphTransitionsWithContextMgmtInfo(graph, transition.getTarget());
 		}
-	}
+		
+	}		
 	
 	final protected String getJavaClassPathFromFullClassName(String className) {
 		return className.replaceAll("\\.", "/") + ".java";
