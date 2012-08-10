@@ -194,58 +194,62 @@ import org.jpos.jposext.ctxmgmt.annotation.UpdateContextRule;
 import org.jpos.jposext.ctxmgmt.annotation.UpdateContextRules;
 
 @UpdateContextRules({
-		@UpdateContextRule(attrNames = CheckRequiredFields.REQUIREDFLD_ATTR0),
-		@UpdateContextRule(id = CheckRequiredFields.TRANSITION__CHECKED_OK, attrNames = { CheckRequiredFields.REQUIREDFLD_ATTR1, CheckRequiredFields.REQUIREDFLD_ATTR2, CheckRequiredFields.REQUIREDFLD_ATTR3}),
-		@UpdateContextRule(id = CheckRequiredFields.TRANSITION__CHECKED_KO, attrNames = { CheckRequiredFields.REQUIREDFLD_ATTR4, CheckRequiredFields.REQUIREDFLD_ATTR5}) })
-public class CheckRequiredFields extends AbstractGroupSelectorParticipant{
+		@UpdateContextRule(attrNames = ICtxAttr.REQUIREDFLD_ATTR0),
+		@UpdateContextRule(id = CheckRequiredFields.TRANSITION__CHECKED_OK, attrNames = {ICtxAttr.REQUIREDFLD_ATTR1, ICtxAttr.REQUIREDFLD_ATTR2, ICtxAttr.REQUIREDFLD_ATTR3 }),
+		@UpdateContextRule(id = CheckRequiredFields.TRANSITION__CHECKED_KO, attrNames = {ICtxAttr.REQUIREDFLD_ATTR4, ICtxAttr.REQUIREDFLD_ATTR5 }) })
+public class CheckRequiredFields extends AbstractGroupSelectorParticipant {
 
-	protected static final String TRANSITION__CHECKED_KO = "CHECKED_KO";
-	protected static final String TRANSITION__CHECKED_OK = "CHECKED_OK";
-	
-	protected static final String REQUIREDFLD_ATTR0 = "requiredfld.attr0";
-	protected static final String REQUIREDFLD_ATTR1 = "requiredfld.attr1";
-	protected static final String REQUIREDFLD_ATTR2 = "requiredfld.attr2";
-	protected static final String REQUIREDFLD_ATTR3 = "requiredfld.attr3";
-	protected static final String REQUIREDFLD_ATTR4 = "requiredfld.attr4";
-	protected static final String REQUIREDFLD_ATTR5 = "requiredfld.attr5";
+	public static final String TRANSITION__CHECKED_KO = "nok";
+	public static final String TRANSITION__CHECKED_OK = "ok";
 
-	/* (non-Javadoc)
-	 * @see org.jpos.jposext.jposworkflow.sample.participant.AbstractGroupSelectorParticipant#prepare(long)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.jpos.jposext.jposworkflow.sample.participant.
+	 * AbstractGroupSelectorParticipant#prepare(long)
 	 */
 	public int prepare(long id) {
 
 		// always add attribute REQUIREDFLD_ATTR0 to context
 		ctxPutForId(UpdateContextRule.DEFAULT_ID, "value0");
-		
-		// NB : method ctxPutForId() should be inherited from parent class AbstractGroupSelectorParticipant
-		// and knows how to update current transaction context using current class @UpdateContextRules annotation
+
+		// NB : method ctxPutForId() should be inherited from parent class
+		// AbstractGroupSelectorParticipant
+		// and knows how to update current transaction context using current
+		// class @UpdateContextRules annotation
 
 		return PREPARED | NO_JOIN;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jpos.jposext.jposworkflow.sample.participant.AbstractGroupSelectorParticipant#select(long)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.jpos.jposext.jposworkflow.sample.participant.
+	 * AbstractGroupSelectorParticipant#select(long)
 	 */
 	public String select(long id) {
-		String transitionId;		
+		String transitionId;
 		boolean checked = false;
 		// do checks here ...
 
 		if (checked) {
 			// Fields checked
 			transitionId = TRANSITION__CHECKED_OK;
-			
-			// Update context according to @UpdateContextRule of id 'CHECKED_OK', passing respective attribute values as arguments 
+
+			// Update context according to @UpdateContextRule of id
+			// 'CHECKED_OK', passing respective attribute values as arguments
 			ctxPutForId(transitionId, "attr1value", "attr2value", "attr3value");
 		} else {
 			transitionId = TRANSITION__CHECKED_KO;
-			
-			// Update context according to @UpdateContextRule of id 'CHECKED_KO', passing respective attribute values as arguments
+
+			// Update context according to @UpdateContextRule of id
+			// 'CHECKED_KO', passing respective attribute values as arguments
 			ctxPutForId(transitionId, "attr4value", "attr5value");
 		}
- 
-		// Looking in current participant configuration for next participants/groups
-		return getConfig().get(transitionId);	
+
+		// Looking in current participant configuration for next
+		// participants/groups
+		return getConfig().get(transitionId);
 	}
 
 }
@@ -257,8 +261,16 @@ Mousing over a simple TransactionParticipant node, it shows up the list of conte
 
 Dealing with a GroupSelector, depending on the outcome transition, extra context attributes may be updated. Mousing over such node shows up the list of context attributes indexed by outcomed transition.
 
+[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_ctxinfo_participant.jpg|align=center]]
+
 ====Transition tool tip====
 <p>Mousing over a transition edge shows up every attributes that are guaranteed to be present in the context at this point of the workflow.</p>
+
+[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_ctxinfo_transition_guaranteed.jpg|align=center]]
+
 <p>Now, as the graph is reduced (common branches of the original graph tree are merged as much as possible), looking to the end of the workflow of our switch transaction manager configuration above, we can see just one ''Response'' participant with a transition to one ''Log'' participant. That's because this part is common to every processing (athorization, notification, finanacial, reversal, ...). Looking back at the beginning of the workflow, the ''authorization'' processing may put some particular attributes in the context whereas the ''notification'' processing may put some others. And maybe they also both share some commons attributes in the process.</p>
 <p>Mousing over the late transition of the workflow, plugin shows up not only the common attributes guaranteed to be set in the context, but also the ones that may be set somewhere in the parent branches.</p>
+
+[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_ctxinfo_transition_non_guaranteed.jpg|align=center]]
+
 This may reveal helpful at some point of the workflow, when one of your participant need to get one attribute from the context, and you want make sure this attribute is present at that point.
