@@ -25,11 +25,16 @@ import org.eclipse.gef.ui.actions.ActionRegistry;
 import org.eclipse.gef.ui.parts.GraphicalEditor;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.internal.core.SourceField;
 import org.eclipse.jface.action.IAction;
 import org.jpos.jposext.ctxmgmt.annotation.UpdateContextRule;
 import org.jpos.jposext.ctxmgmt.annotation.UpdateContextRules;
@@ -45,7 +50,7 @@ import org.jpos.jposext.jposworkflow.service.support.TxnMgrGroupsConverterImpl;
 
 /**
  * @author dgrandemange
- *
+ * 
  */
 public class MyGraphicalEditor extends GraphicalEditor {
 
@@ -109,11 +114,11 @@ public class MyGraphicalEditor extends GraphicalEditor {
 
 		TxnMgrGroupsConverterImpl converter = new TxnMgrGroupsConverterImpl();
 		Graph graphInter1 = converter.toGraph(jPosTxnMgrGroups);
-		
+
 		GraphReducerImpl reducer = new GraphReducerImpl();
 		Graph graphInter2 = reducer.reduce(graphInter1);
-		updateReducedGraphTransitionsWithContextMgmtInfo(graphInter2);		
-		
+		updateReducedGraphTransitionsWithContextMgmtInfo(graphInter2);
+
 		Map<String, Node> mapNodes = new HashMap<String, Node>();
 		for (Transition t : graphInter2.getLstTransitions()) {
 			Node nodeSource = new Node();
@@ -207,7 +212,7 @@ public class MyGraphicalEditor extends GraphicalEditor {
 					if (null == jElt) {
 						continue;
 					}
-					
+
 					int elementType = jElt.getElementType();
 
 					if (elementType == IJavaElement.COMPILATION_UNIT) {
@@ -240,15 +245,18 @@ public class MyGraphicalEditor extends GraphicalEditor {
 														for (IMemberValuePair subMemberValuePair : subMemberValuePairs) {
 															if ("id".equals(subMemberValuePair
 																	.getMemberName())) {
-																id = (String) subMemberValuePair
-																		.getValue();
+																id = renameMeLater(
+																		jProject,
+																		type,
+																		subMemberValuePair);
 															} else if ("attrNames"
 																	.equals(subMemberValuePair
 																			.getMemberName())) {
 																Object subMemberValue = subMemberValuePair
 																		.getValue();
 																if (subMemberValue instanceof String) {
-																	attrNames = new String[] { (String) subMemberValue };
+																	String attrName = (String) subMemberValue;
+																	attrNames = new String[] { attrName };
 																} else if (subMemberValue instanceof Object[]) {
 																	attrNames = Arrays
 																			.copyOf((Object[]) subMemberValue,
@@ -290,95 +298,190 @@ public class MyGraphicalEditor extends GraphicalEditor {
 		}
 	}
 
+	protected String renameMeLater(IJavaProject jProject, IType type,
+			IMemberValuePair subMemberValuePair) throws JavaModelException {
+		String res = null;
+
+		Object subMemberValue = subMemberValuePair.getValue();
+		int valueKind = subMemberValuePair.getValueKind();
+		if (IMemberValuePair.K_STRING == valueKind) {
+			res = (String) subMemberValue;
+		} else if ((IMemberValuePair.K_SIMPLE_NAME == valueKind)
+				|| (IMemberValuePair.K_QUALIFIED_NAME == valueKind)) {
+
+			res = resolveConstantFromQualifiedName(jProject, type,
+					subMemberValue);
+			
+			if (null == res) {
+				res = (String) subMemberValue;
+			}
+
+		}
+		return res;
+	}
+
+	protected String resolveConstantFromQualifiedName(IJavaProject jProject,
+			IType type, Object subMemberValue) throws JavaModelException {
+		String res = null;
+
+		String name = (String) subMemberValue;
+		int i = name.lastIndexOf(".");
+		String last = name.substring(i + 1);
+		String valueClass = name.substring(0, i);
+		String[][] resolvedTypes = type.resolveType(valueClass);
+		if (null != resolvedTypes) {
+			String packageName = null;
+			String className = null;
+			for (String[] tab1 : resolvedTypes) {
+				packageName = tab1[0];
+				className = tab1[1];
+				break;
+			}
+			IType valueType = getCompilationUnitFromFullClassName(jProject,
+					packageName + "." + className);
+			if (null != valueType) {
+				IField valueField = valueType.getField(last);
+
+				Object fldConstant = valueField.getConstant();
+				if (null != fldConstant) {
+					String constantValue = fldConstant.toString();
+					if (('"' == constantValue.charAt(0))
+							&& ('"' == constantValue.charAt(constantValue
+									.length() - 1))) {
+						res = constantValue.substring(1,
+								constantValue.length() - 1);
+					}
+				}
+			}
+
+		}
+		return res;
+	}
+
+	protected IType getCompilationUnitFromFullClassName(IJavaProject jProject,
+			String className) throws JavaModelException {
+		IType res = null;
+
+		String sTypePath = getJavaClassPathFromFullClassName(className);
+		IPath typePath = new Path(sTypePath);
+
+		if (null != typePath) {
+			IJavaElement typeJElt = jProject.findElement(typePath);
+
+			if (null != typeJElt) {
+				if (typeJElt.getElementType() == IJavaElement.COMPILATION_UNIT) {
+					IType[] types = ((ICompilationUnit) typeJElt).getTypes();
+					res = types[0];
+				}
+			}
+		}
+
+		return res;
+	}
+
 	protected void updateReducedGraphTransitionsWithContextMgmtInfo(Graph graph) {
 		updateReducedGraphTransitionsWithContextMgmtInfo(graph, null);
-	}	
+	}
 
-	protected void updateReducedGraphTransitionsWithContextMgmtInfo(Graph graph, org.jpos.jposext.jposworkflow.model.Node currentNode) {
+	protected void updateReducedGraphTransitionsWithContextMgmtInfo(
+			Graph graph, org.jpos.jposext.jposworkflow.model.Node currentNode) {
 		if (null == graph) {
 			return;
 		}
-		
+
 		if (graph.getFinalNode().equals(currentNode)) {
 			return;
 		}
-		
+
 		if (null == currentNode) {
 			currentNode = graph.getInitialNode();
 		}
-		
-		boolean forceReturn=false;
-		
+
+		boolean forceReturn = false;
+
 		HashSet<String> sharedGuaranteedAttrsBetweenParentTransitions;
 		HashSet<String> sharedOptionalAttrsBetweenParentTransitions;
-		
-		List<Transition> lstTransitionsAsDest = currentNode.getLstTransitionsAsDest();
-		// How many transitions are referencing the current node ?		
+
+		List<Transition> lstTransitionsAsDest = currentNode
+				.getLstTransitionsAsDest();
+		// How many transitions are referencing the current node ?
 		if (lstTransitionsAsDest.size() > 1) {
 			// Several transitions are referencing the current node
-			
-			// Check for all transitions with current node as destination have their context mgmt info populated. Otherwise, return		
+
+			// Check for all transitions with current node as destination have
+			// their context mgmt info populated. Otherwise, return
 			for (Transition transition : lstTransitionsAsDest) {
-					if (null == transition.getGuaranteedCtxAttributes()) {
-						forceReturn =true;
-						break;
-					}
+				if (null == transition.getGuaranteedCtxAttributes()) {
+					forceReturn = true;
+					break;
+				}
 			}
-			
+
 			if (forceReturn) {
-				// System.out.println(String.format("Stop on group=%s,class=%s,referenced by %d transitions", currentNode.getParticipant().getGroupName(), currentNode.getParticipant().getClazz(), lstTransitionsAsDest.size()));				
+				// System.out.println(String.format("Stop on group=%s,class=%s,referenced by %d transitions",
+				// currentNode.getParticipant().getGroupName(),
+				// currentNode.getParticipant().getClazz(),
+				// lstTransitionsAsDest.size()));
 				return;
 			}
-			
+
 			HashSet<String> sharedAllAttrsBetweenParentTransitions = new HashSet<String>();
-			
-			// Compute guaranteed attributes commonly shared between current node's all parent transitions
+
+			// Compute guaranteed attributes commonly shared between current
+			// node's all parent transitions
 			sharedGuaranteedAttrsBetweenParentTransitions = new HashSet<String>();
 			boolean firstPass = true;
 			for (Transition transition : lstTransitionsAsDest) {
 				if (null != transition.getOptionalCtxAttributes()) {
-					sharedAllAttrsBetweenParentTransitions.addAll(transition.getOptionalCtxAttributes());
+					sharedAllAttrsBetweenParentTransitions.addAll(transition
+							.getOptionalCtxAttributes());
 				}
-				
-				List<String> currentTransitionGuaranteedCtxAttributes = transition.getGuaranteedCtxAttributes();
-				
+
+				List<String> currentTransitionGuaranteedCtxAttributes = transition
+						.getGuaranteedCtxAttributes();
+
 				if (null == currentTransitionGuaranteedCtxAttributes) {
 					currentTransitionGuaranteedCtxAttributes = new ArrayList<String>();
 				}
-				
-				sharedAllAttrsBetweenParentTransitions.addAll(currentTransitionGuaranteedCtxAttributes);
-				
-				if (firstPass) {							
-					sharedGuaranteedAttrsBetweenParentTransitions.addAll(currentTransitionGuaranteedCtxAttributes);							
+
+				sharedAllAttrsBetweenParentTransitions
+						.addAll(currentTransitionGuaranteedCtxAttributes);
+
+				if (firstPass) {
+					sharedGuaranteedAttrsBetweenParentTransitions
+							.addAll(currentTransitionGuaranteedCtxAttributes);
+				} else {
+					sharedGuaranteedAttrsBetweenParentTransitions
+							.retainAll(currentTransitionGuaranteedCtxAttributes);
 				}
-				else {
-					sharedGuaranteedAttrsBetweenParentTransitions.retainAll(currentTransitionGuaranteedCtxAttributes);
-				}
-				
+
 				firstPass = false;
 			}
 
-			// Compute attributes NOT shared between current node's all parent transitions
+			// Compute attributes NOT shared between current node's all parent
+			// transitions
 			sharedOptionalAttrsBetweenParentTransitions = new HashSet<String>();
 			for (String attr : sharedAllAttrsBetweenParentTransitions) {
-				if (!(sharedGuaranteedAttrsBetweenParentTransitions.contains(attr))) {
+				if (!(sharedGuaranteedAttrsBetweenParentTransitions
+						.contains(attr))) {
 					sharedOptionalAttrsBetweenParentTransitions.add(attr);
 				}
 			}
-			
-		}
-		else if (lstTransitionsAsDest.size() == 1) {
+
+		} else if (lstTransitionsAsDest.size() == 1) {
 			// One transition only is referencing the current node
 			Transition t = lstTransitionsAsDest.get(0);
-			
-			sharedGuaranteedAttrsBetweenParentTransitions = new HashSet<String>();			
-			sharedGuaranteedAttrsBetweenParentTransitions.addAll(t.getGuaranteedCtxAttributes());
 
-			sharedOptionalAttrsBetweenParentTransitions = new HashSet<String>();			
-			sharedOptionalAttrsBetweenParentTransitions.addAll(t.getOptionalCtxAttributes());
-		}
-		else {
-			// There isn't any transition referencing the current node (i.e. initial node of the graph)
+			sharedGuaranteedAttrsBetweenParentTransitions = new HashSet<String>();
+			sharedGuaranteedAttrsBetweenParentTransitions.addAll(t
+					.getGuaranteedCtxAttributes());
+
+			sharedOptionalAttrsBetweenParentTransitions = new HashSet<String>();
+			sharedOptionalAttrsBetweenParentTransitions.addAll(t
+					.getOptionalCtxAttributes());
+		} else {
+			// There isn't any transition referencing the current node (i.e.
+			// initial node of the graph)
 			sharedGuaranteedAttrsBetweenParentTransitions = new HashSet<String>();
 			sharedOptionalAttrsBetweenParentTransitions = new HashSet<String>();
 		}
@@ -387,45 +490,51 @@ public class MyGraphicalEditor extends GraphicalEditor {
 		ParticipantInfo currentNodeParticipant = currentNode.getParticipant();
 		Map<String, String[]> currNodeUpdCtxAttrByTransNameMap = null;
 		if (null != currentNodeParticipant) {
-			currNodeUpdCtxAttrByTransNameMap = currentNodeParticipant.getUpdCtxAttrByTransId();
+			currNodeUpdCtxAttrByTransNameMap = currentNodeParticipant
+					.getUpdCtxAttrByTransId();
 			if (null != currNodeUpdCtxAttrByTransNameMap) {
-				ctxAttrSetByDefault = currNodeUpdCtxAttrByTransNameMap.get(UpdateContextRule.DEFAULT_ID);
+				ctxAttrSetByDefault = currNodeUpdCtxAttrByTransNameMap
+						.get(UpdateContextRule.DEFAULT_ID);
 			}
-		}		
-		
+		}
+
 		for (Transition transition : currentNode.getLstTransitionsAsSource()) {
 			String transitionName = transition.getName();
 			String[] ctxAttrSetForTransName = null;
 			if (null != currNodeUpdCtxAttrByTransNameMap) {
-				ctxAttrSetForTransName = currNodeUpdCtxAttrByTransNameMap.get(transitionName);
+				ctxAttrSetForTransName = currNodeUpdCtxAttrByTransNameMap
+						.get(transitionName);
 			}
-			
+
 			HashSet<String> ctxAttributes = new HashSet<String>();
-			
+
 			if (null != ctxAttrSetByDefault) {
 				Collections.addAll(ctxAttributes, ctxAttrSetByDefault);
 			}
-			
+
 			if (null != ctxAttrSetForTransName) {
 				Collections.addAll(ctxAttributes, ctxAttrSetForTransName);
 			}
-			
+
 			transition.setGuaranteedCtxAttributes(new ArrayList<String>());
-			transition.getGuaranteedCtxAttributes().addAll(sharedGuaranteedAttrsBetweenParentTransitions);
+			transition.getGuaranteedCtxAttributes().addAll(
+					sharedGuaranteedAttrsBetweenParentTransitions);
 			transition.getGuaranteedCtxAttributes().addAll(ctxAttributes);
 			Collections.sort(transition.getGuaranteedCtxAttributes());
-			
+
 			transition.setOptionalCtxAttributes(new ArrayList<String>());
-			transition.getOptionalCtxAttributes().addAll(sharedOptionalAttrsBetweenParentTransitions);
+			transition.getOptionalCtxAttributes().addAll(
+					sharedOptionalAttrsBetweenParentTransitions);
 			Collections.sort(transition.getOptionalCtxAttributes());
-			
-			updateReducedGraphTransitionsWithContextMgmtInfo(graph, transition.getTarget());
+
+			updateReducedGraphTransitionsWithContextMgmtInfo(graph,
+					transition.getTarget());
 		}
-		
-	}		
-	
+
+	}
+
 	final protected String getJavaClassPathFromFullClassName(String className) {
 		return className.replaceAll("\\.", "/") + ".java";
 	}
-	
+
 }
