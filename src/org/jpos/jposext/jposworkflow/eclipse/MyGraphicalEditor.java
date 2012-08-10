@@ -307,7 +307,7 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			currentNode = graph.getInitialNode();
 		}
 		
-		boolean doReturn=false;
+		boolean forceReturn=false;
 		
 		HashSet<String> sharedGuaranteedAttrsBetweenParentTransitions;
 		HashSet<String> sharedOptionalAttrsBetweenParentTransitions;
@@ -320,13 +320,13 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			// Check for all transitions with current node as destination have their context mgmt info populated. Otherwise, return		
 			for (Transition transition : lstTransitionsAsDest) {
 					if (null == transition.getGuaranteedCtxAttributes()) {
-						doReturn =true;
+						forceReturn =true;
 						break;
 					}
 			}
 			
-			if (doReturn) {
-				System.out.println(String.format("Stop on group=%s,class=%s,referenced by %d transitions", currentNode.getParticipant().getGroupName(), currentNode.getParticipant().getClazz(), lstTransitionsAsDest.size()));				
+			if (forceReturn) {
+				// System.out.println(String.format("Stop on group=%s,class=%s,referenced by %d transitions", currentNode.getParticipant().getGroupName(), currentNode.getParticipant().getClazz(), lstTransitionsAsDest.size()));				
 				return;
 			}
 			
