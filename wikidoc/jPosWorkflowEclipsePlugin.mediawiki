@@ -12,51 +12,53 @@ Having a graphical view would be much more talkative. Besides, a graphical repre
 
 Thinking of a graphical representation as a state diagram along its ''states'' and ''transitions'', there would be the transaction participants as ''states'' . But what about ''transitions''? Nothing in a transaction manager configuration formally identifies transitions between a participant and a group. But, taking a further look at §10.8 of jPOS programmer's guide, the configuration sample clearly shows that some properties are used for this purpose and hold a ''transition'' function.  In this sample, we can see properties which gives a list of groups to pass through, depending on the message type (0100, 0200,...). Obviously, theses properties can be used as transitions.
 
-<pre>     ...</pre>
-<pre>     </pre>
-<pre>     <participant class="org.jpos.my.Switch" logger="Q2"></pre>
-<pre>     	< !--</pre>
-<pre>     		If MTI is 0100, route to the following participants groups : </pre>
-<pre>     		- Authorization,</pre>
-<pre>     		- Response,</pre>
-<pre>     		- Log</pre>
-<pre>     	-- ></pre>
-<pre>     	<property name="0100" value="Authorization Response Log" /></pre>
-<pre>     	</pre>
-<pre>     	< !--</pre>
-<pre>     		If MTI is 0200, route to the following participants groups : </pre>
-<pre>     		- Financial,</pre>
-<pre>     		- Response,</pre>
-<pre>     		- Log</pre>
-<pre>     	-- ></pre>
-<pre>     	<property name="0200" value="Financial Response Log" /></pre>
-<pre>     </pre>
-<pre>     	<property name="0220" value="Notification Response Log" /></pre>
-<pre>     	<property name="0221" value="Notification Response Log" /></pre>
-<pre>     	<property name="0420" value="Reversal Response Log" /></pre>
-<pre>     	<property name="0421" value="Reversal Response Log" /></pre>
-<pre>     	<property name="0500" value="BatchManagement Response Log" /></pre>
-<pre>     	<property name="0421" value="Reversal Response Log" /></pre>
-<pre>     	<property name="0800" value="NetworkManagement Response Log" /></pre>
-<pre>     </participant></pre>
-<pre>     </pre>
-<pre>     ...</pre>
-<pre>     </pre>
-<pre>     <group name="Financial"></pre>
-<pre>     	<participant class="com.my.company.CheckRequiredFields"></pre>
-<pre>     	<property name="fields" value="0,3,4,17,49,32,41,43,37,PAN,AMOUNT" /></pre>
-<pre>     	</participant></pre>
-<pre>     	<participant class="com.my.company.CheckCurrency" /></pre>
-<pre>     	</pre>
-<pre>     	...</pre>
-<pre>     	</pre>
-<pre>     </group></pre>
-<pre>     </pre>
-<pre>     <group name="Reversal"></pre>
-<pre>     	...</pre>
-<pre>     </group></pre>
-<pre>     </pre>
-<pre>     ...</pre>
+<pre>
+     ...
+     
+     <participant class="org.jpos.my.Switch" logger="Q2">
+     	< !--
+     		If MTI is 0100, route to the following participants groups : 
+     		- Authorization,
+     		- Response,
+     		- Log
+     	-- >
+     	<property name="0100" value="Authorization Response Log" />
+     	
+     	< !--
+     		If MTI is 0200, route to the following participants groups : 
+     		- Financial,
+     		- Response,
+     		- Log
+     	-- >
+     	<property name="0200" value="Financial Response Log" />
+     
+     	<property name="0220" value="Notification Response Log" />
+     	<property name="0221" value="Notification Response Log" />
+     	<property name="0420" value="Reversal Response Log" />
+     	<property name="0421" value="Reversal Response Log" />
+     	<property name="0500" value="BatchManagement Response Log" />
+     	<property name="0421" value="Reversal Response Log" />
+     	<property name="0800" value="NetworkManagement Response Log" />
+     </participant>
+     
+     ...
+     
+     <group name="Financial">
+     	<participant class="com.my.company.CheckRequiredFields">
+     	<property name="fields" value="0,3,4,17,49,32,41,43,37,PAN,AMOUNT" />
+     	</participant>
+     	<participant class="com.my.company.CheckCurrency" />
+     	
+     	...
+     	
+     </group>
+     
+     <group name="Reversal">
+     	...
+     </group>
+     
+     ...
+</pre>
 
 =The jPos Workflow Eclipse plugin=
 Keeping all of this in mind, a specific Eclipse plugin has been written which at this point provides  :
@@ -72,52 +74,53 @@ Resulting design constraints are :
 * avoid circular references
 
 After adapting the previous transaction manager configuration excerpt to suit these constraints, we obtain the following configuration :
+<pre>
+<txnmgr name="kdoTxn" logger="Q2"	class="org.jpos.transaction.TransactionManager">
 
-<pre><txnmgr name="kdoTxn" logger="Q2"	class="org.jpos.transaction.TransactionManager"></pre>
-<pre></pre>
-<pre>	<participant class="org.jpos.my.Switch" logger="Q2"></pre>
-<pre>	</pre>
-<pre>		<property name="0100" value="Authorization Response Log" </pre>
-<pre>			selectCriterion="incoming message 0100" /></pre>
-<pre>			</pre>
-<pre>		<property name="0200" value="Financial Response Log"</pre>
-<pre>			 selectCriterion="incoming message 0200" /></pre>
-<pre>			 </pre>
-<pre>		<property name="0220" value="Notification Response Log" </pre>
-<pre>			selectCriterion="incoming message 0220" /></pre>
-<pre>			</pre>
-<pre>		<property name="0221" value="Notification Response Log" </pre>
-<pre>			selectCriterion="incoming message 0221" /></pre>
-<pre>			</pre>
-<pre>		<property name="0420" value="Reversal Response Log" </pre>
-<pre>			selectCriterion="incoming message 0420" /></pre>
-<pre>		</pre>
-<pre>		<property name="0421" value="Reversal Response Log" </pre>
-<pre>			selectCriterion="incoming message 0421" /></pre>
-<pre>		</pre>
-<pre>		<property name="0500" value="BatchManagement Response Log" </pre>
-<pre>			selectCriterion="incoming message 0500" /></pre>
-<pre>		</pre>
-<pre>		<property name="0421" value="Reversal Response Log" </pre>
-<pre>			selectCriterion="incoming message 0421" /></pre>
-<pre>		</pre>
-<pre>		<property name="0800" value="NetworkManagement Response Log" </pre>
-<pre>			selectCriterion="incoming message 0800" /></pre>
-<pre>	</participant></pre>
-<pre>	</pre>
-<pre>	<group name="Financial"></pre>
-<pre>		</pre>
-<pre>		<participant class="com.my.company.CheckRequiredFields"></pre>
-<pre>			<property name="fields" value="0,3,4,17,49,32,41,43,37,PAN,AMOUNT" /></pre>
-<pre>		</participant></pre>
-<pre>		</pre>
-<pre>		<participant class="com.my.company.CheckCurrency" /></pre>
-<pre>		</pre>
-<pre>	</group></pre>
-<pre>	</pre>
-<pre>	< !-- TODO :  configuration to complete -- ></pre>
-<pre>	</pre>
-<pre></txnmgr></pre>
+	<participant class="org.jpos.my.Switch" logger="Q2">
+	
+		<property name="0100" value="Authorization Response Log" 
+			selectCriterion="incoming message 0100" />
+			
+		<property name="0200" value="Financial Response Log"
+			 selectCriterion="incoming message 0200" />
+			 
+		<property name="0220" value="Notification Response Log" 
+			selectCriterion="incoming message 0220" />
+			
+		<property name="0221" value="Notification Response Log" 
+			selectCriterion="incoming message 0221" />
+			
+		<property name="0420" value="Reversal Response Log" 
+			selectCriterion="incoming message 0420" />
+		
+		<property name="0421" value="Reversal Response Log" 
+			selectCriterion="incoming message 0421" />
+		
+		<property name="0500" value="BatchManagement Response Log" 
+			selectCriterion="incoming message 0500" />
+		
+		<property name="0421" value="Reversal Response Log" 
+			selectCriterion="incoming message 0421" />
+		
+		<property name="0800" value="NetworkManagement Response Log" 
+			selectCriterion="incoming message 0800" />
+	</participant>
+	
+	<group name="Financial">
+		
+		<participant class="com.my.company.CheckRequiredFields">
+			<property name="fields" value="0,3,4,17,49,32,41,43,37,PAN,AMOUNT" />
+		</participant>
+		
+		<participant class="com.my.company.CheckCurrency" />
+		
+	</group>
+	
+	< !-- TODO :  configuration to complete -- >
+	
+</txnmgr>
+</pre>
 
 After right-clicking this XML configuration file in the Eclipse Package Explorer view, item menu  ''jPos Workflow -> view graph'' should show up. 
 
@@ -134,39 +137,40 @@ About this view :
 Also, right clicking on jPos Workflow view, you may be able to export the graph as a DOT file (GraphViz format). 
 
 Here is the generated DOT source after such export : 
-
-<pre><nowiki>digraph "JPos Workflow Eclipse Plugin DOT Export" {</nowiki></pre>
-<pre><nowiki>node [shape="box" peripheries="1" style="filled" color="#000000" fillcolor="#FFFFCE" fontname="Arial" fontsize="10"]</nowiki></pre>
-<pre><nowiki>n1 [label="Switch"]</nowiki></pre>
-<pre><nowiki>n23 [label="Log:<undefined>"]</nowiki></pre>
-<pre><nowiki>n22 [label="Response:<undefined>"]</nowiki></pre>
-<pre><nowiki>FINAL [label="" shape="circle" peripheries="2" style="filled" color="#000000" fillcolor="#000000"]</nowiki></pre>
-<pre><nowiki>n21 [label="Reversal:<undefined>"]</nowiki></pre>
-<pre><nowiki>n3 [label="CheckCurrency"]</nowiki></pre>
-<pre><nowiki>n2 [label="CheckRequiredFields"]</nowiki></pre>
-<pre><nowiki>n9 [label="Notification:<undefined>"]</nowiki></pre>
-<pre><nowiki>n6 [label="NetworkManagement:<undefined>"]</nowiki></pre>
-<pre><nowiki>INITIAL [label="" shape="circle" peripheries="1" style="filled" color="#000000" fillcolor="#000000"]</nowiki></pre>
-<pre><nowiki>n24 [label="Authorization:<undefined>"]</nowiki></pre>
-<pre><nowiki>n15 [label="BatchManagement:<undefined>"]</nowiki></pre>
-<pre><nowiki>edge [fontname="Arial" fontsize="8" dir="forward" arrowhead="normal"]</nowiki></pre>
-<pre><nowiki>n3 -> n22 [label=""]</nowiki></pre>
-<pre><nowiki>n22 -> n23 [label=""]</nowiki></pre>
-<pre><nowiki>n6 -> n22 [label=""]</nowiki></pre>
-<pre><nowiki>n1 -> n9 [label="incoming message 0221"]</nowiki></pre>
-<pre><nowiki>n15 -> n22 [label=""]</nowiki></pre>
-<pre><nowiki>n21 -> n22 [label=""]</nowiki></pre>
-<pre><nowiki>n9 -> n22 [label=""]</nowiki></pre>
-<pre><nowiki>n1 -> n21 [label="incoming message 0420"]</nowiki></pre>
-<pre><nowiki>n1 -> n6 [label="incoming message 0800"]</nowiki></pre>
-<pre><nowiki>n1 -> n15 [label="incoming message 0500"]</nowiki></pre>
-<pre><nowiki>n23 -> FINAL [label=""]</nowiki></pre>
-<pre><nowiki>n1 -> n24 [label="incoming message 0100"]</nowiki></pre>
-<pre><nowiki>n24 -> n22 [label=""]</nowiki></pre>
-<pre><nowiki>INITIAL -> n1 [label=""]</nowiki></pre>
-<pre><nowiki>n1 -> n2 [label="incoming message 0200"]</nowiki></pre>
-<pre><nowiki>n2 -> n3 [label=""]</nowiki></pre>
-<pre><nowiki>}</nowiki></pre>
+<pre>
+<nowiki>digraph "JPos Workflow Eclipse Plugin DOT Export" {</nowiki>
+<nowiki>node [shape="box" peripheries="1" style="filled" color="#000000" fillcolor="#FFFFCE" fontname="Arial" fontsize="10"]</nowiki>
+<nowiki>n1 [label="Switch"]</nowiki>
+<nowiki>n23 [label="Log:<undefined>"]</nowiki>
+<nowiki>n22 [label="Response:<undefined>"]</nowiki>
+<nowiki>FINAL [label="" shape="circle" peripheries="2" style="filled" color="#000000" fillcolor="#000000"]</nowiki>
+<nowiki>n21 [label="Reversal:<undefined>"]</nowiki>
+<nowiki>n3 [label="CheckCurrency"]</nowiki>
+<nowiki>n2 [label="CheckRequiredFields"]</nowiki>
+<nowiki>n9 [label="Notification:<undefined>"]</nowiki>
+<nowiki>n6 [label="NetworkManagement:<undefined>"]</nowiki>
+<nowiki>INITIAL [label="" shape="circle" peripheries="1" style="filled" color="#000000" fillcolor="#000000"]</nowiki>
+<nowiki>n24 [label="Authorization:<undefined>"]</nowiki>
+<nowiki>n15 [label="BatchManagement:<undefined>"]</nowiki>
+<nowiki>edge [fontname="Arial" fontsize="8" dir="forward" arrowhead="normal"]</nowiki>
+<nowiki>n3 -> n22 [label=""]</nowiki>
+<nowiki>n22 -> n23 [label=""]</nowiki>
+<nowiki>n6 -> n22 [label=""]</nowiki>
+<nowiki>n1 -> n9 [label="incoming message 0221"]</nowiki>
+<nowiki>n15 -> n22 [label=""]</nowiki>
+<nowiki>n21 -> n22 [label=""]</nowiki>
+<nowiki>n9 -> n22 [label=""]</nowiki>
+<nowiki>n1 -> n21 [label="incoming message 0420"]</nowiki>
+<nowiki>n1 -> n6 [label="incoming message 0800"]</nowiki>
+<nowiki>n1 -> n15 [label="incoming message 0500"]</nowiki>
+<nowiki>n23 -> FINAL [label=""]</nowiki>
+<nowiki>n1 -> n24 [label="incoming message 0100"]</nowiki>
+<nowiki>n24 -> n22 [label=""]</nowiki>
+<nowiki>INITIAL -> n1 [label=""]</nowiki>
+<nowiki>n1 -> n2 [label="incoming message 0200"]</nowiki>
+<nowiki>n2 -> n3 [label=""]</nowiki>
+<nowiki>}</nowiki>
+</pre>
 
 and here is GraphViz rendering of this DOT source :
 [[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_dot_graphviz_view.jpg|align=center]]
