@@ -178,7 +178,7 @@ and here is GraphViz rendering of this DOT source :
 You may install the [http://sourceforge.net/projects/eclipsegraphviz/ Eclipse GraphViz plugin] for rendering inside your Eclipse IDE.
 
 ==Context management informations==
-If your participant classes are annotated with context management annotations, the plugin uses them.
+If your participant classes are annotated with [https://github.com/dgrandemange/context-mgmt-annotation context management annotations], the plugin uses them.
 
 ===About context management annotations===
 <p>These annotations may be used on participant classes (implementing jPos TransactionParticipant or GroupSelector interfaces).Simply said, these annotations are a way to explicitly declare which context attributes may be updated after participant's processing.</p>
@@ -261,4 +261,4 @@ Dealing with a GroupSelector, depending on the outcome transition, extra context
 <p>Mousing over a transition edge shows up every attributes that are guaranteed to be present in the context at this point of the workflow.</p>
 <p>Now, as the graph is reduced (common branches of the original graph tree are merged as much as possible), looking to the end of the workflow of our switch transaction manager configuration above, we can see just one ''Response'' participant with a transition to one ''Log'' participant. That's because this part is common to every processing (athorization, notification, finanacial, reversal, ...). Looking back at the beginning of the workflow, the ''authorization'' processing may put some particular attributes in the context whereas the ''notification'' processing may put some others. And maybe they also both share some commons attributes in the process.</p>
 <p>Mousing over the late transition of the workflow, plugin shows up not only the common attributes guaranteed to be set in the context, but also the ones that may be set somewhere in the parent branches.</p>
-This may reveal helpful at some point of the workflow, when one of your participant need to get one attribute from the context, and you want make sure this attribute present at that point.
+This may reveal helpful at some point of the workflow, when one of your participant need to get one attribute from the context, and you want make sure this attribute is present at that point.
