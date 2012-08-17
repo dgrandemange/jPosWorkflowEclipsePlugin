@@ -17,7 +17,8 @@ public class NodeInfoFigure extends Figure {
 	private Label name = new Label();
 	private Label groupLabel = new Label();
 	private Label classLabel = new Label();
-	private CompartmentFigure transitionsInfoFigureCompartment = new CompartmentFigure();
+	private CompartmentFigure guaranteedAttrsFigure = new CompartmentFigure();
+	private CompartmentFigure optionalAttrsFigure = new CompartmentFigure();
 
 	public NodeInfoFigure(boolean isGroup) {
 		ToolbarLayout layout = new ToolbarLayout();
@@ -31,14 +32,8 @@ public class NodeInfoFigure extends Figure {
 			add(groupLabel);
 		}
 		add(classLabel);
-		add(transitionsInfoFigureCompartment);
-	}
-
-	/**
-	 * @return
-	 */
-	public CompartmentFigure getTransitionsInfoFigureCompartment() {
-		return transitionsInfoFigureCompartment;
+		add(guaranteedAttrsFigure);
+		add(optionalAttrsFigure);		
 	}
 
 	/**
@@ -62,4 +57,11 @@ public class NodeInfoFigure extends Figure {
 		return classLabel;
 	}
 
+	public CompartmentFigure getGuaranteedAttrsFigureCompartment() {
+		return guaranteedAttrsFigure;
+	}
+
+	public CompartmentFigure getOptionalAttrsFigureCompartment() {
+		return optionalAttrsFigure;
+	}
 }

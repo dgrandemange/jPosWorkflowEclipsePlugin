@@ -32,9 +32,6 @@ import org.eclipse.jdt.core.IMemberValuePair;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.internal.core.SourceField;
 import org.eclipse.jface.action.IAction;
 import org.jpos.jposext.ctxmgmt.annotation.UpdateContextRule;
 import org.jpos.jposext.ctxmgmt.annotation.UpdateContextRules;
@@ -117,6 +114,7 @@ public class MyGraphicalEditor extends GraphicalEditor {
 
 		GraphReducerImpl reducer = new GraphReducerImpl();
 		Graph graphInter2 = reducer.reduce(graphInter1);
+		
 		updateReducedGraphTransitionsWithContextMgmtInfo(graphInter2);
 
 		Map<String, Node> mapNodes = new HashMap<String, Node>();
@@ -484,10 +482,18 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			// initial node of the graph)
 			sharedGuaranteedAttrsBetweenParentTransitions = new HashSet<String>();
 			sharedOptionalAttrsBetweenParentTransitions = new HashSet<String>();
-		}
+		}		
 
-		String[] ctxAttrSetByDefault = null;
 		ParticipantInfo currentNodeParticipant = currentNode.getParticipant();
+
+		if (null != currentNodeParticipant) {
+			currentNodeParticipant.setGuaranteedCtxAttributes(new ArrayList<String>());
+			currentNodeParticipant.getGuaranteedCtxAttributes().addAll(sharedGuaranteedAttrsBetweenParentTransitions);
+			currentNodeParticipant.setOptionalCtxAttributes(new ArrayList<String>());
+			currentNodeParticipant.getOptionalCtxAttributes().addAll(sharedOptionalAttrsBetweenParentTransitions);
+		}
+		
+		String[] ctxAttrSetByDefault = null;
 		Map<String, String[]> currNodeUpdCtxAttrByTransNameMap = null;
 		if (null != currentNodeParticipant) {
 			currNodeUpdCtxAttrByTransNameMap = currentNodeParticipant
@@ -504,6 +510,16 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			if (null != currNodeUpdCtxAttrByTransNameMap) {
 				ctxAttrSetForTransName = currNodeUpdCtxAttrByTransNameMap
 						.get(transitionName);
+				
+				transition.setAttributesAdded(new ArrayList<String>());
+				
+				if (null != ctxAttrSetByDefault) {
+					Collections.addAll(transition.getAttributesAdded(), ctxAttrSetByDefault);
+				}
+				
+				if (null != ctxAttrSetForTransName) {
+					Collections.addAll(transition.getAttributesAdded(), ctxAttrSetForTransName);
+				}
 			}
 
 			HashSet<String> ctxAttributes = new HashSet<String>();

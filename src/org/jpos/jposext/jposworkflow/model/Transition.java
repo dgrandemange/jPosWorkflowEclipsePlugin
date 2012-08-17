@@ -17,11 +17,13 @@ public class Transition {
 	private String name;
 
 	private String desc;
-
+	
 	private List<String> guaranteedCtxAttributes;
 	
 	private List<String> optionalCtxAttributes;
 
+	private List<String> attributesAdded;
+	
 	public Transition() {
 		super();
 	}
@@ -116,6 +118,20 @@ public class Transition {
 	 */
 	public void setOptionalCtxAttributes(List<String> optionalCtxAttributes) {
 		this.optionalCtxAttributes = optionalCtxAttributes;
+	}
+
+	/**
+	 * @return the attributesAdded
+	 */
+	public List<String> getAttributesAdded() {
+		return attributesAdded;
+	}
+
+	/**
+	 * @param attributesAdded the attributesAdded to set
+	 */
+	public void setAttributesAdded(List<String> attributesAdded) {
+		this.attributesAdded = attributesAdded;
 	}
 
 }

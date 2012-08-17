@@ -15,8 +15,7 @@ public class TransitionInfoFigure extends Figure {
 	public static Color classColor = new Color(null, 255, 255, 206);
 	
 	private CompartmentFigure transitionDescFigure = new CompartmentFigure();
-	private CompartmentFigure guaranteedAttrsFigure = new CompartmentFigure();
-	private CompartmentFigure optionalAttrsFigure = new CompartmentFigure();
+	private CompartmentFigure transitionsInfoFigureCompartment = new CompartmentFigure();
 
 	public TransitionInfoFigure(Label name) {
 		ToolbarLayout layout = new ToolbarLayout();
@@ -28,20 +27,15 @@ public class TransitionInfoFigure extends Figure {
 		if (null != name) {
 			add(name);
 			add(transitionDescFigure);
-			add(guaranteedAttrsFigure);
-			add(optionalAttrsFigure);
+			add(transitionsInfoFigureCompartment);
 		}
 	}
 
 	public CompartmentFigure getTransitionDescFigureCompartment() {
 		return transitionDescFigure;
 	}
-
-	public CompartmentFigure getGuaranteedAttrsFigureCompartment() {
-		return guaranteedAttrsFigure;
-	}
-
-	public CompartmentFigure getOptionalAttrsFigureCompartment() {
-		return optionalAttrsFigure;
+	
+	public CompartmentFigure getTransitionsInfoFigureCompartment() {
+		return transitionsInfoFigureCompartment;
 	}
 }

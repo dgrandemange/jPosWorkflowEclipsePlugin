@@ -2,7 +2,6 @@ package org.jpos.jposext.jposworkflow.eclipse.editpart;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -14,7 +13,6 @@ import org.eclipse.draw2d.ConnectionAnchor;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.ImageFigure;
 import org.eclipse.draw2d.Label;
-import org.eclipse.draw2d.PositionConstants;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.draw2d.graph.Node;
 import org.eclipse.gef.ConnectionEditPart;
@@ -39,12 +37,10 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 import org.jpos.jposext.jposworkflow.eclipse.MyEditorInput;
-import org.jpos.jposext.jposworkflow.eclipse.figure.CompartmentFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.FinalNodeFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.InitialNodeFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.NodeFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.NodeInfoFigure;
-import org.jpos.jposext.jposworkflow.eclipse.figure.TransitionAttrsCompartmentFigure;
 import org.jpos.jposext.jposworkflow.eclipse.helper.ModelDataHelper;
 import org.jpos.jposext.jposworkflow.eclipse.model.NodeDataWrapper;
 import org.jpos.jposext.jposworkflow.model.NodeNatureEnum;
@@ -56,11 +52,36 @@ import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
  */
 public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.gef.editparts.AbstractGraphicalEditPart#createFigure()
-	 */
+	private static final ImageData IMAGE_DATA__DEFINED_PARTICIPANT_ICON = new ImageData(
+			NodePart.class.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/participant.png"));
+
+	private static final ImageData IMAGE_DATA__UNDEF_PARTICIPANT_ICON = new ImageData(
+			NodePart.class.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/participant-undef.png"));
+	
+	private static final ImageData IMAGE_DATA__DEFINED_GROUP_ICON = new ImageData(
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/group.png"));
+
+	private static final ImageData IMAGE_DATA__UNDEF_GROUP_ICON = new ImageData(
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/group-undef.png"));
+	
+	private static final ImageData IMAGE_DATA__CTX_ATTR_OPTIONAL_ICON = new ImageData(
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-optional.png"));
+	
+	private static final ImageData IMAGE_DATA__CTX_ATTR_GUARANTEED_ICON = new ImageData(
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-guaranteed.png"));
+	
+	private static final ImageData IMAGE_DATA__FINAL_STATE_ICON = new ImageData(
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/final-state.gif"));
+	
+	private static final ImageData IMAGE_DATA__INITIAL_STATE_ICON = new ImageData(
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/initial-state.gif"));
+
 	@Override
 	protected IFigure createFigure() {
 		Node model = (Node) getModel();
@@ -69,20 +90,14 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 
 		if (NodeNatureEnum.INITIAL.equals(nodeNature)) {
 			ImageFigure imgFigure = new InitialNodeFigure();
-			ImageData imgData = new ImageData(
-					this.getClass()
-							.getResourceAsStream(
-									"/org/jpos/jposext/jposworkflow/eclipse/res/img/initial-state.gif"));
-			Image img = new Image(Display.getCurrent(), imgData);
+			Image img = new Image(Display.getCurrent(),
+					IMAGE_DATA__INITIAL_STATE_ICON);
 			imgFigure.setImage(img);
 			figure = imgFigure;
 		} else if (NodeNatureEnum.FINAL.equals(nodeNature)) {
 			ImageFigure imgFigure = new FinalNodeFigure();
-			ImageData imgData = new ImageData(
-					this.getClass()
-							.getResourceAsStream(
-									"/org/jpos/jposext/jposworkflow/eclipse/res/img/final-state.gif"));
-			Image img = new Image(Display.getCurrent(), imgData);
+			Image img = new Image(Display.getCurrent(),
+					IMAGE_DATA__FINAL_STATE_ICON);
 			imgFigure.setImage(img);
 			figure = imgFigure;
 		} else {
@@ -92,47 +107,23 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 		return figure;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.gef.editparts.AbstractEditPart#createEditPolicies()
-	 */
 	@Override
 	protected void createEditPolicies() {
-		// TODO Auto-generated method stub
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.eclipse.gef.editparts.AbstractGraphicalEditPart#getModelSourceConnections
-	 * ()
-	 */
 	@Override
 	protected List getModelSourceConnections() {
 		Node model = (Node) getModel();
 		return model.outgoing;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.eclipse.gef.editparts.AbstractGraphicalEditPart#getModelTargetConnections
-	 * ()
-	 */
 	@Override
 	protected List getModelTargetConnections() {
 		Node model = (Node) getModel();
 		return model.incoming;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.gef.editparts.AbstractEditPart#refreshVisuals()
-	 */
+	@Override
 	protected void refreshVisuals() {
 		IFigure figure = this.getFigure();
 		Node model = (Node) getModel();
@@ -144,20 +135,20 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 
 			Label labelId;
 			Image img;
-			String undef = ModelDataHelper.isUndefined(model.data) ? "-undef"
-					: "";
 
 			NodeInfoFigure nodeInfoFigure;
 			if (ModelDataHelper.isGroup(model.data)
 					&& (!(ModelDataHelper.isDynaGroup(model.data)))) {
 				nodeInfoFigure = new NodeInfoFigure(true);
 
-				ImageData imgData = new ImageData(
-						this.getClass()
-								.getResourceAsStream(
-										String.format(
-												"/org/jpos/jposext/jposworkflow/eclipse/res/img/group%s.png",
-												undef)));
+				ImageData imgData;
+				if (ModelDataHelper.isUndefined(model.data)) {
+					imgData = IMAGE_DATA__UNDEF_GROUP_ICON;					
+				}
+				else {
+					imgData = IMAGE_DATA__DEFINED_GROUP_ICON;
+				}
+				
 				img = new Image(Display.getCurrent(), imgData);
 				labelId = new Label(
 						ModelDataHelper.getLabelFromNodeData(model.data), img);
@@ -169,12 +160,14 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 			} else {
 				nodeInfoFigure = new NodeInfoFigure(false);
 
-				ImageData imgData = new ImageData(
-						this.getClass()
-								.getResourceAsStream(
-										String.format(
-												"/org/jpos/jposext/jposworkflow/eclipse/res/img/participant%s.png",
-												undef)));
+				ImageData imgData;
+				if (ModelDataHelper.isUndefined(model.data)) {
+					imgData = IMAGE_DATA__UNDEF_PARTICIPANT_ICON;					
+				}
+				else {
+					imgData = IMAGE_DATA__DEFINED_PARTICIPANT_ICON;
+				}				
+				
 				img = new Image(Display.getCurrent(), imgData);
 
 				labelId = new Label(
@@ -188,48 +181,46 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 			nodeInfoFigure.getName().setIcon(img);
 			nodeInfoFigure.getName().setFont(labelIdFont);
 
-			ImageData ctxAttrPutImgData = new ImageData(
-					this.getClass()
-							.getResourceAsStream(
-									"/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-put.png"));
-			Image ctxAttrPutImg = new Image(Display.getCurrent(),
-					ctxAttrPutImgData);
-
-			ImageData transitionImgData = new ImageData(
-					this.getClass()
-							.getResourceAsStream(
-									"/org/jpos/jposext/jposworkflow/eclipse/res/img/transition.png"));
-			Image transitionImg = new Image(Display.getCurrent(),
-					transitionImgData);
-
 			ParticipantInfo pInfo = ModelDataHelper
 					.getWrappedParticipantInfo(model.data);
-			if ((null != pInfo) && (null != pInfo.getUpdCtxAttrByTransId())) {
-				for (Entry<String, String[]> entry : pInfo
-						.getUpdCtxAttrByTransId().entrySet()) {
-					CompartmentFigure compartmentFigure = new CompartmentFigure();
-					compartmentFigure.setParent(nodeInfoFigure);
 
-					Label transitionLabel = new Label(String.format("%s",
-							entry.getKey()), transitionImg);
-					Font transitionLabelFont = new Font(null, "Arial", 10,
-							SWT.BOLD);
-					transitionLabel.setFont(transitionLabelFont);
-					transitionLabel.setLabelAlignment(PositionConstants.CENTER);
-					compartmentFigure.add(transitionLabel);
-
-					TransitionAttrsCompartmentFigure attrsCompartmentFigure = new TransitionAttrsCompartmentFigure();
-					for (String attr : entry.getValue()) {
-						Label attrLabel = new Label(attr, ctxAttrPutImg);
-						attrLabel.setTextPlacement(PositionConstants.WEST);
-						attrsCompartmentFigure.add(attrLabel);
-					}
-
-					compartmentFigure.add(attrsCompartmentFigure);
-
-					nodeInfoFigure.add(compartmentFigure);
+			Image ctxAttrGuaranteedImg = new Image(Display.getCurrent(),
+					IMAGE_DATA__CTX_ATTR_GUARANTEED_ICON);
+			if (null != pInfo.getGuaranteedCtxAttributes()
+					&& pInfo.getGuaranteedCtxAttributes().size() > 0) {
+				for (String guaranteedCtxAttr : pInfo
+						.getGuaranteedCtxAttributes()) {
+					nodeInfoFigure.getGuaranteedAttrsFigureCompartment().add(
+							new Label(guaranteedCtxAttr, ctxAttrGuaranteedImg));
 				}
+			} else {
+				Font nonGuranteedAttrLabelFont = new Font(null, "Arial", 10,
+						SWT.ITALIC);
+				Label nonGuranteedAttrlabel = new Label(
+						"<no guaranteed attributes>", ctxAttrGuaranteedImg);
+				nonGuranteedAttrlabel.setFont(nonGuranteedAttrLabelFont);
+				nodeInfoFigure.getGuaranteedAttrsFigureCompartment().add(
+						nonGuranteedAttrlabel);
 			}
+
+			Image ctxAttrOptionalImg = new Image(Display.getCurrent(),
+					IMAGE_DATA__CTX_ATTR_OPTIONAL_ICON);
+			if (null != pInfo.getOptionalCtxAttributes()
+					&& pInfo.getOptionalCtxAttributes().size() > 0) {
+				for (String optionalCtxAttr : pInfo.getOptionalCtxAttributes()) {
+					nodeInfoFigure.getOptionalAttrsFigureCompartment().add(
+							new Label(optionalCtxAttr, ctxAttrOptionalImg));
+				}
+			} else {
+				Font noOptionalAttrlabelFont = new Font(null, "Arial", 10,
+						SWT.ITALIC);
+				Label noOptionalAttrlabel = new Label(
+						"<no optional attributes>", ctxAttrOptionalImg);
+				noOptionalAttrlabel.setFont(noOptionalAttrlabelFont);
+				nodeInfoFigure.getOptionalAttrsFigureCompartment().add(
+						noOptionalAttrlabel);
+			}
+
 			nodeFigure.setToolTip(nodeInfoFigure);
 
 			labelId.setFont(labelIdFont);
@@ -295,13 +286,6 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 		return new ChopboxAnchor(getFigure());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.eclipse.gef.editparts.AbstractEditPart#performRequest(org.eclipse
-	 * .gef.Request)
-	 */
 	@Override
 	public void performRequest(Request req) {
 		/*

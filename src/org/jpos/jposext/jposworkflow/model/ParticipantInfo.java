@@ -1,5 +1,6 @@
 package org.jpos.jposext.jposworkflow.model;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,6 +18,10 @@ public class ParticipantInfo {
 	private String groupName;
 
 	private Map<String, SelectCriterion> selectCriteria;
+	
+	private List<String> guaranteedCtxAttributes;
+	
+	private List<String> optionalCtxAttributes;	
 	
 	/**
 	 * Updated context attributes by transition id 
@@ -78,6 +83,34 @@ public class ParticipantInfo {
 	 */
 	public void setUpdCtxAttrByTransId(Map<String, String[]> updCtxAttrByTransId) {
 		this.updCtxAttrByTransId = updCtxAttrByTransId;
+	}
+
+	/**
+	 * @return the guaranteedCtxAttributes
+	 */
+	public List<String> getGuaranteedCtxAttributes() {
+		return guaranteedCtxAttributes;
+	}
+
+	/**
+	 * @param guaranteedCtxAttributes the guaranteedCtxAttributes to set
+	 */
+	public void setGuaranteedCtxAttributes(List<String> guaranteedCtxAttributes) {
+		this.guaranteedCtxAttributes = guaranteedCtxAttributes;
+	}
+
+	/**
+	 * @return the optionalCtxAttributes
+	 */
+	public List<String> getOptionalCtxAttributes() {
+		return optionalCtxAttributes;
+	}
+
+	/**
+	 * @param optionalCtxAttributes the optionalCtxAttributes to set
+	 */
+	public void setOptionalCtxAttributes(List<String> optionalCtxAttributes) {
+		this.optionalCtxAttributes = optionalCtxAttributes;
 	}
 
 }
