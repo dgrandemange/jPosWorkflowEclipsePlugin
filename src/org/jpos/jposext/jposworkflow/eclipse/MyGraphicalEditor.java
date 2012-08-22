@@ -1,5 +1,6 @@
 package org.jpos.jposext.jposworkflow.eclipse;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,6 +40,7 @@ import org.jpos.jposext.jposworkflow.eclipse.action.ExportAsDOTAction;
 import org.jpos.jposext.jposworkflow.eclipse.action.ExportAsImageAction;
 import org.jpos.jposext.jposworkflow.eclipse.editpart.AppEditPartFactory;
 import org.jpos.jposext.jposworkflow.eclipse.model.NodeDataWrapper;
+import org.jpos.jposext.jposworkflow.helper.GraphHelper;
 import org.jpos.jposext.jposworkflow.model.Graph;
 import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 import org.jpos.jposext.jposworkflow.model.Transition;
@@ -115,6 +117,8 @@ public class MyGraphicalEditor extends GraphicalEditor {
 		GraphReducerImpl reducer = new GraphReducerImpl();
 		Graph graphInter2 = reducer.reduce(graphInter1);
 
+		GraphHelper.dumpGraph(graphInter2, new PrintWriter(System.out));
+		
 		updateReducedGraphTransitionsWithContextMgmtInfo(graphInter2);
 
 		Map<String, Node> mapNodes = new HashMap<String, Node>();
@@ -521,15 +525,19 @@ public class MyGraphicalEditor extends GraphicalEditor {
 
 				transition.setAttributesAdded(new ArrayList<String>());
 
+				HashSet<String> addedAttributes = new HashSet<String>();
+				
 				if (null != ctxAttrSetByDefault) {
-					Collections.addAll(transition.getAttributesAdded(),
+					Collections.addAll(addedAttributes,
 							ctxAttrSetByDefault);
 				}
 
 				if (null != ctxAttrSetForTransName) {
-					Collections.addAll(transition.getAttributesAdded(),
+					Collections.addAll(addedAttributes,
 							ctxAttrSetForTransName);
 				}
+				
+				transition.getAttributesAdded().addAll(addedAttributes);
 			}
 
 			HashSet<String> ctxAttributes = new HashSet<String>();
