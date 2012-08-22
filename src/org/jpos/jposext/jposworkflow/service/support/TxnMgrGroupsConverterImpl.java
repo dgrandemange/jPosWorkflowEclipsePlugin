@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Stack;
 import java.util.StringTokenizer;
-import java.util.Map.Entry;
 
+import org.jpos.jposext.jposworkflow.helper.GraphHelper;
 import org.jpos.jposext.jposworkflow.model.Graph;
 import org.jpos.jposext.jposworkflow.model.Node;
 import org.jpos.jposext.jposworkflow.model.NodeNatureEnum;
@@ -25,6 +26,8 @@ import org.jpos.jposext.jposworkflow.service.ITxnMgrGroupsConverter;
  */
 public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 
+	private static final String GROUP_ID__CONTROL_BACK_TO_PARENT_FLOW = "*$controlBackToParentFlow$*";
+
 	public class Counter {
 		private int count = 0;
 
@@ -34,9 +37,13 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.jpos.jposext.jposworkflow.service.ITxnMgrGroupsConverter#toGraph(java.util.Map)
-	 */	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.jpos.jposext.jposworkflow.service.ITxnMgrGroupsConverter#toGraph(
+	 * java.util.Map)
+	 */
 	public Graph toGraph(Map<String, List<ParticipantInfo>> groups) {
 
 		Node initialNode = new Node(Graph.INITIAL_NODE_ID);
@@ -46,6 +53,7 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 		Node finalNode = new Node(Graph.FINAL_NODE_ID);
 		finalNode.setType(Graph.FINAL_NODE_TYPE);
 		finalNode.setNodeNature(NodeNatureEnum.FINAL);
+		finalNode.setParticipant(new ParticipantInfo());
 
 		List<Transition> lstTransitions = new ArrayList<Transition>();
 
@@ -67,28 +75,36 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 		Counter nodeSequence = (new TxnMgrGroupsConverterImpl()).new Counter();
 		NodeWrapper pLastNodeWrapper = new NodeWrapper(initialNode);
 		Stack<String> groupsStack = new Stack<String>();
-		core(graph, reducedGroups, rootGroup, pLastNodeWrapper, transitionName, transitionDesc,
-				transitionSequence, nodeSequence, groupsStack);
+		
+		core(graph, reducedGroups, rootGroup, pLastNodeWrapper, transitionName,
+				transitionDesc, transitionSequence, nodeSequence, groupsStack);
+		
 		doFinalTransitions(graph, transitionSequence);
-
+		
+		replaceControlBackToParentFlowGroup(graph);
+		
+		GraphHelper.recomputeNodesTransitions(graph);
+		
 		return graph;
 	}
 
 	protected void core(Graph graph,
 			Map<String, List<ParticipantInfo>> pgroups,
-			List<ParticipantInfo> pgroup, NodeWrapper pLastNodeWrapper, String pTransitionName,
-			String pTransitionDesc, Counter transitionSequence,
-			Counter nodeSequence, Stack<String> groupsStack) {
+			List<ParticipantInfo> pgroup, NodeWrapper pLastNodeWrapper,
+			String pTransitionName, String pTransitionDesc,
+			Counter transitionSequence, Counter nodeSequence,
+			Stack<String> groupsStack) {
 
 		for (ParticipantInfo participant : pgroup) {
 			Node source = pLastNodeWrapper.getWrapped();
 			Node target = new Node(String.format("n%d", nodeSequence.inc()));
-			target.setType(String.format("group=%s, class=%s", participant
-					.getGroupName(), participant.getClazz()));
+			target.setType(String.format("group=%s, class=%s",
+					participant.getGroupName(), participant.getClazz()));
 			target.setParticipant(participant);
 
-			createTransition(graph, String.format("t%d", transitionSequence
-					.inc()), source, target, pTransitionName, pTransitionDesc);
+			createTransition(graph,
+					String.format("t%d", transitionSequence.inc()), source,
+					target, pTransitionName, pTransitionDesc);
 			pTransitionDesc = "";
 			if (!(participant.isGroup())) {
 				pLastNodeWrapper.setWrapped(target);
@@ -126,8 +142,19 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 						String groupId = tokenizer.nextToken();
 						lstTokens.add(groupId);
 					}
-					for (int tokenId = lstTokens.size(); tokenId > 0; tokenId--) {
-						groupsStackInter.push(lstTokens.get(tokenId - 1));
+
+					if (lstTokens.size() > 0) {
+						for (int tokenId = lstTokens.size(); tokenId > 0; tokenId--) {
+							groupsStackInter.push(lstTokens.get(tokenId - 1));
+						}
+					} else {
+						// No groups selected for transition.
+						// If stack is empty, we push a dummy 'control back to
+						// parent flow' group on the stack.
+						if (groupsStackInter.isEmpty()) {
+							groupsStackInter
+									.push(GROUP_ID__CONTROL_BACK_TO_PARENT_FLOW);
+						}
 					}
 
 					String groupId = groupsStackInter.pop();
@@ -139,8 +166,9 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 						pgroups.put(groupId, group);
 					}
 
-					core(graph, pgroups, group, nodeWrapper, transitionName, transitionDesc,
-							transitionSequence, nodeSequence, groupsStackInter);
+					core(graph, pgroups, group, nodeWrapper, transitionName,
+							transitionDesc, transitionSequence, nodeSequence,
+							groupsStackInter);
 				}
 			}
 		}
@@ -165,9 +193,38 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 		}
 
 		for (Entry<String, Node> entry : notSourceNodes.entrySet()) {
-			createTransition(graph, String.format("t%d", transitionSequence
-					.inc()), entry.getValue(), graph.getFinalNode(), "", "");
+			createTransition(graph,
+					String.format("t%d", transitionSequence.inc()),
+					entry.getValue(), graph.getFinalNode(), "", "");
 		}
+	}
+
+	protected void replaceControlBackToParentFlowGroup(Graph graph) {
+		
+		Node finalNode = graph.getFinalNode();
+		List<Transition> lstTransitions = graph.getLstTransitions();
+		for (Transition t : lstTransitions) {
+			Node currentNode = t.getTarget();
+			ParticipantInfo participant = currentNode.getParticipant();
+			if (null != participant) {
+				if (GROUP_ID__CONTROL_BACK_TO_PARENT_FLOW.equals(participant
+						.getGroupName())) {
+					t.setTarget(finalNode);
+				}
+			}
+		}
+
+		for (Transition t : finalNode.getLstTransitionsAsDest()) {
+			Node currentNode = t.getSource();
+			ParticipantInfo participant = currentNode.getParticipant();
+			if (null != participant) {
+				if (GROUP_ID__CONTROL_BACK_TO_PARENT_FLOW.equals(participant
+						.getGroupName())) {
+					graph.getLstTransitions().remove(t);
+				}
+			}
+		}
+				
 	}
 
 	protected void toOneParticipantPerGroup(
@@ -206,21 +263,21 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 				if (idx > 0) {
 					List<ParticipantInfo> lstParticipantsDynaGroup = new ArrayList<ParticipantInfo>();
 					String dynaGroupId = String.format("%s_%d",
-							ParticipantInfo.DYNAGROUP_PREFIXE, dynaGroupCounter
-									.inc());
+							ParticipantInfo.DYNAGROUP_PREFIXE,
+							dynaGroupCounter.inc());
 					pReducedGroups.put(dynaGroupId, lstParticipantsDynaGroup);
 
 					ParticipantInfo clonePInfo = clone(pInfo);
 					clonePInfo.setGroupName(dynaGroupId);
-					
+
 					lstParticipantsDynaGroup.add(clonePInfo);
 					last_group = dynaGroupId;
 				} else {
 					List<ParticipantInfo> lstParticipantsDynaGroup = new ArrayList<ParticipantInfo>();
 
-					ParticipantInfo clonePInfo = clone(pInfo);					
+					ParticipantInfo clonePInfo = clone(pInfo);
 					lstParticipantsDynaGroup.add(clonePInfo);
-					
+
 					pReducedGroups
 							.put(entry.getKey(), lstParticipantsDynaGroup);
 				}
@@ -228,7 +285,8 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 		}
 	}
 
-	protected Map<String, List<ParticipantInfo>> clone(Map<String, List<ParticipantInfo>> pgroups) {
+	protected Map<String, List<ParticipantInfo>> clone(
+			Map<String, List<ParticipantInfo>> pgroups) {
 		Map<String, List<ParticipantInfo>> resClone = new HashMap<String, List<ParticipantInfo>>();
 		for (Entry<String, List<ParticipantInfo>> entry : pgroups.entrySet()) {
 			List<ParticipantInfo> clonedList = new ArrayList<ParticipantInfo>();
@@ -239,21 +297,24 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 		}
 		return resClone;
 	}
-	
+
 	protected ParticipantInfo clone(ParticipantInfo pInfo) {
 		Map<String, SelectCriterion> selectCriteria = pInfo.getSelectCriteria();
 		Map<String, SelectCriterion> cloneSelectCriteria = new HashMap<String, SelectCriterion>();
-		for (Entry<String, SelectCriterion> entryCriterion : selectCriteria.entrySet()) {
+		for (Entry<String, SelectCriterion> entryCriterion : selectCriteria
+				.entrySet()) {
 			SelectCriterion criterion = entryCriterion.getValue();
-			SelectCriterion cloneCriterion = new SelectCriterion(criterion.getName(), criterion.getValue(), criterion.getDesc());
+			SelectCriterion cloneCriterion = new SelectCriterion(
+					criterion.getName(), criterion.getValue(),
+					criterion.getDesc());
 			cloneSelectCriteria.put(entryCriterion.getKey(), cloneCriterion);
 		}
-		ParticipantInfo clonePInfo = new ParticipantInfo(pInfo
-				.getClazz(), pInfo.getGroupName(), cloneSelectCriteria);
+		ParticipantInfo clonePInfo = new ParticipantInfo(pInfo.getClazz(),
+				pInfo.getGroupName(), cloneSelectCriteria);
 		clonePInfo.setUpdCtxAttrByTransId(pInfo.getUpdCtxAttrByTransId());
 		return clonePInfo;
 	}
-	
+
 	protected void createTransition(Graph graph, String tid, Node source,
 			Node target, String tname, String tdesc) {
 		Transition t = new Transition(tid, tname, source, target);

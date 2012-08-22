@@ -5,9 +5,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
+import org.jpos.jposext.jposworkflow.helper.GraphHelper;
 import org.jpos.jposext.jposworkflow.model.Graph;
 import org.jpos.jposext.jposworkflow.model.Node;
 import org.jpos.jposext.jposworkflow.model.Transition;
@@ -159,37 +160,9 @@ public class GraphReducerImpl implements IGraphReducer {
 
 		graph.setLstTransitions(uniqTransitionsList);
 
-		recomputeNodesTransitions(graph);
-
+		GraphHelper.recomputeNodesTransitions(graph);
+		
 		return graph;
-	}
-
-	protected void recomputeNodesTransitions(Graph graph) {
-		List<Transition> lstTransitions = graph.getLstTransitions();
-
-		// First reset
-		for (Transition t : lstTransitions) {
-			t.getSource().setLstTransitionsAsDest(new ArrayList<Transition>());
-			t.getSource()
-					.setLstTransitionsAsSource(new ArrayList<Transition>());
-			t.getTarget().setLstTransitionsAsDest(new ArrayList<Transition>());
-			t.getTarget()
-					.setLstTransitionsAsSource(new ArrayList<Transition>());
-		}
-
-		// Then recompute
-		for (Transition t : lstTransitions) {
-			List<Transition> lstTransitionsAsSource = t.getSource()
-					.getLstTransitionsAsSource();
-			if (!lstTransitionsAsSource.contains(t)) {
-				lstTransitionsAsSource.add(t);
-			}
-			
-			List<Transition> lstTransitionsAsDest = t.getTarget().getLstTransitionsAsDest();
-			if (!lstTransitionsAsDest.contains(t)) {
-				lstTransitionsAsDest.add(t);
-			}
-		}
 	}
 
 	protected void classifyNodesByPathInversedTraversal(

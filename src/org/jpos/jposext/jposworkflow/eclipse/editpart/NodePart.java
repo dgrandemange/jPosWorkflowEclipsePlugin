@@ -53,11 +53,13 @@ import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart {
 
 	private static final ImageData IMAGE_DATA__DEFINED_PARTICIPANT_ICON = new ImageData(
-			NodePart.class.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/participant.png"));
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/participant.png"));
 
 	private static final ImageData IMAGE_DATA__UNDEF_PARTICIPANT_ICON = new ImageData(
-			NodePart.class.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/participant-undef.png"));
-	
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/participant-undef.png"));
+
 	private static final ImageData IMAGE_DATA__DEFINED_GROUP_ICON = new ImageData(
 			NodePart.class
 					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/group.png"));
@@ -65,22 +67,24 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 	private static final ImageData IMAGE_DATA__UNDEF_GROUP_ICON = new ImageData(
 			NodePart.class
 					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/group-undef.png"));
-	
+
 	private static final ImageData IMAGE_DATA__CTX_ATTR_OPTIONAL_ICON = new ImageData(
 			NodePart.class
 					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-optional.png"));
-	
+
 	private static final ImageData IMAGE_DATA__CTX_ATTR_GUARANTEED_ICON = new ImageData(
 			NodePart.class
 					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-guaranteed.png"));
-	
+
 	private static final ImageData IMAGE_DATA__FINAL_STATE_ICON = new ImageData(
 			NodePart.class
 					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/final-state.gif"));
-	
+
 	private static final ImageData IMAGE_DATA__INITIAL_STATE_ICON = new ImageData(
 			NodePart.class
 					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/initial-state.gif"));
+
+	private static Font labelIdFont = new Font(null, "Arial", 10, SWT.BOLD);;
 
 	@Override
 	protected IFigure createFigure() {
@@ -130,7 +134,6 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 
 		if (figure instanceof NodeFigure) {
 			NodeFigure nodeFigure = (NodeFigure) figure;
-			Font labelIdFont = new Font(null, "Arial", 10, SWT.BOLD);
 			Font classFont = new Font(null, "Arial", 10, SWT.ITALIC);
 
 			Label labelId;
@@ -143,12 +146,11 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 
 				ImageData imgData;
 				if (ModelDataHelper.isUndefined(model.data)) {
-					imgData = IMAGE_DATA__UNDEF_GROUP_ICON;					
-				}
-				else {
+					imgData = IMAGE_DATA__UNDEF_GROUP_ICON;
+				} else {
 					imgData = IMAGE_DATA__DEFINED_GROUP_ICON;
 				}
-				
+
 				img = new Image(Display.getCurrent(), imgData);
 				labelId = new Label(
 						ModelDataHelper.getLabelFromNodeData(model.data), img);
@@ -162,12 +164,11 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 
 				ImageData imgData;
 				if (ModelDataHelper.isUndefined(model.data)) {
-					imgData = IMAGE_DATA__UNDEF_PARTICIPANT_ICON;					
-				}
-				else {
+					imgData = IMAGE_DATA__UNDEF_PARTICIPANT_ICON;
+				} else {
 					imgData = IMAGE_DATA__DEFINED_PARTICIPANT_ICON;
-				}				
-				
+				}
+
 				img = new Image(Display.getCurrent(), imgData);
 
 				labelId = new Label(
@@ -181,56 +182,79 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 			nodeInfoFigure.getName().setIcon(img);
 			nodeInfoFigure.getName().setFont(labelIdFont);
 
-			ParticipantInfo pInfo = ModelDataHelper
-					.getWrappedParticipantInfo(model.data);
-
-			Image ctxAttrGuaranteedImg = new Image(Display.getCurrent(),
-					IMAGE_DATA__CTX_ATTR_GUARANTEED_ICON);
-			if (null != pInfo.getGuaranteedCtxAttributes()
-					&& pInfo.getGuaranteedCtxAttributes().size() > 0) {
-				for (String guaranteedCtxAttr : pInfo
-						.getGuaranteedCtxAttributes()) {
-					nodeInfoFigure.getGuaranteedAttrsFigureCompartment().add(
-							new Label(guaranteedCtxAttr, ctxAttrGuaranteedImg));
-				}
-			} else {
-				Font nonGuranteedAttrLabelFont = new Font(null, "Arial", 10,
-						SWT.ITALIC);
-				Label nonGuranteedAttrlabel = new Label(
-						"<no guaranteed attributes>", ctxAttrGuaranteedImg);
-				nonGuranteedAttrlabel.setFont(nonGuranteedAttrLabelFont);
-				nodeInfoFigure.getGuaranteedAttrsFigureCompartment().add(
-						nonGuranteedAttrlabel);
-			}
-
-			Image ctxAttrOptionalImg = new Image(Display.getCurrent(),
-					IMAGE_DATA__CTX_ATTR_OPTIONAL_ICON);
-			if (null != pInfo.getOptionalCtxAttributes()
-					&& pInfo.getOptionalCtxAttributes().size() > 0) {
-				for (String optionalCtxAttr : pInfo.getOptionalCtxAttributes()) {
-					nodeInfoFigure.getOptionalAttrsFigureCompartment().add(
-							new Label(optionalCtxAttr, ctxAttrOptionalImg));
-				}
-			} else {
-				Font noOptionalAttrlabelFont = new Font(null, "Arial", 10,
-						SWT.ITALIC);
-				Label noOptionalAttrlabel = new Label(
-						"<no optional attributes>", ctxAttrOptionalImg);
-				noOptionalAttrlabel.setFont(noOptionalAttrlabelFont);
-				nodeInfoFigure.getOptionalAttrsFigureCompartment().add(
-						noOptionalAttrlabel);
-			}
+			completeNodeInfoFifureWithAttrInfo(model, nodeInfoFigure);
 
 			nodeFigure.setToolTip(nodeInfoFigure);
 
 			labelId.setFont(labelIdFont);
 
 			nodeFigure.add(labelId);
+		} else if (figure instanceof InitialNodeFigure) {
+			InitialNodeFigure nodeFigure = (InitialNodeFigure) figure;
+			NodeInfoFigure nodeInfoFigure = new NodeInfoFigure(false);
+			
+			nodeInfoFigure.getName().setText("Initial state");
+			nodeInfoFigure.getName().setFont(labelIdFont);
+			
+			nodeFigure.setToolTip(nodeInfoFigure);			
+		} else if (figure instanceof FinalNodeFigure) {
+			FinalNodeFigure nodeFigure = (FinalNodeFigure) figure;
+			NodeInfoFigure nodeInfoFigure = new NodeInfoFigure(false);
+			
+			nodeInfoFigure.getName().setText("Final state");
+			nodeInfoFigure.getName().setFont(labelIdFont);
+			
+			completeNodeInfoFifureWithAttrInfo(model, nodeInfoFigure);
+
+			nodeFigure.setToolTip(nodeInfoFigure);			
 		}
 
 		Rectangle r = new Rectangle(model.x, model.y, -1, -1);
 
 		((GraphicalEditPart) getParent()).setLayoutConstraint(this, figure, r);
+	}
+
+	protected void completeNodeInfoFifureWithAttrInfo(Node model,
+			NodeInfoFigure nodeInfoFigure) {
+		ParticipantInfo pInfo = ModelDataHelper
+				.getWrappedParticipantInfo(model.data);
+
+		Image ctxAttrGuaranteedImg = new Image(Display.getCurrent(),
+				IMAGE_DATA__CTX_ATTR_GUARANTEED_ICON);
+		if (null != pInfo.getGuaranteedCtxAttributes()
+				&& pInfo.getGuaranteedCtxAttributes().size() > 0) {
+			for (String guaranteedCtxAttr : pInfo
+					.getGuaranteedCtxAttributes()) {
+				nodeInfoFigure.getGuaranteedAttrsFigureCompartment().add(
+						new Label(guaranteedCtxAttr, ctxAttrGuaranteedImg));
+			}
+		} else {
+			Font nonGuranteedAttrLabelFont = new Font(null, "Arial", 10,
+					SWT.ITALIC);
+			Label nonGuranteedAttrlabel = new Label(
+					"<no guaranteed attributes>", ctxAttrGuaranteedImg);
+			nonGuranteedAttrlabel.setFont(nonGuranteedAttrLabelFont);
+			nodeInfoFigure.getGuaranteedAttrsFigureCompartment().add(
+					nonGuranteedAttrlabel);
+		}
+
+		Image ctxAttrOptionalImg = new Image(Display.getCurrent(),
+				IMAGE_DATA__CTX_ATTR_OPTIONAL_ICON);
+		if (null != pInfo.getOptionalCtxAttributes()
+				&& pInfo.getOptionalCtxAttributes().size() > 0) {
+			for (String optionalCtxAttr : pInfo.getOptionalCtxAttributes()) {
+				nodeInfoFigure.getOptionalAttrsFigureCompartment().add(
+						new Label(optionalCtxAttr, ctxAttrOptionalImg));
+			}
+		} else {
+			Font noOptionalAttrlabelFont = new Font(null, "Arial", 10,
+					SWT.ITALIC);
+			Label noOptionalAttrlabel = new Label(
+					"<no optional attributes>", ctxAttrOptionalImg);
+			noOptionalAttrlabel.setFont(noOptionalAttrlabelFont);
+			nodeInfoFigure.getOptionalAttrsFigureCompartment().add(
+					noOptionalAttrlabel);
+		}
 	}
 
 	/*

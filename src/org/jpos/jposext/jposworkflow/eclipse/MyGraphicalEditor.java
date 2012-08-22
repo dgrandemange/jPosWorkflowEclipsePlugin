@@ -114,7 +114,7 @@ public class MyGraphicalEditor extends GraphicalEditor {
 
 		GraphReducerImpl reducer = new GraphReducerImpl();
 		Graph graphInter2 = reducer.reduce(graphInter1);
-		
+
 		updateReducedGraphTransitionsWithContextMgmtInfo(graphInter2);
 
 		Map<String, Node> mapNodes = new HashMap<String, Node>();
@@ -227,8 +227,14 @@ public class MyGraphicalEditor extends GraphicalEditor {
 									if ("value".equals(memberValuePair
 											.getMemberName())) {
 										try {
-											Object[] memberValues = (Object[]) memberValuePair
-													.getValue();
+											Object[] memberValues;
+											try {
+												memberValues = (Object[]) memberValuePair
+														.getValue();
+											} catch (ClassCastException e) {
+												memberValues = new Object[] { memberValuePair
+														.getValue() };
+											}
 											for (Object memberValue : memberValues) {
 												if (memberValue instanceof IAnnotation) {
 													IAnnotation subAnnotation = (IAnnotation) memberValue;
@@ -309,7 +315,7 @@ public class MyGraphicalEditor extends GraphicalEditor {
 
 			res = resolveConstantFromQualifiedName(jProject, type,
 					subMemberValue);
-			
+
 			if (null == res) {
 				res = (String) subMemberValue;
 			}
@@ -387,10 +393,6 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			return;
 		}
 
-		if (graph.getFinalNode().equals(currentNode)) {
-			return;
-		}
-
 		if (null == currentNode) {
 			currentNode = graph.getInitialNode();
 		}
@@ -416,10 +418,6 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			}
 
 			if (forceReturn) {
-				// System.out.println(String.format("Stop on group=%s,class=%s,referenced by %d transitions",
-				// currentNode.getParticipant().getGroupName(),
-				// currentNode.getParticipant().getClazz(),
-				// lstTransitionsAsDest.size()));
 				return;
 			}
 
@@ -482,17 +480,27 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			// initial node of the graph)
 			sharedGuaranteedAttrsBetweenParentTransitions = new HashSet<String>();
 			sharedOptionalAttrsBetweenParentTransitions = new HashSet<String>();
-		}		
+		}
+
+		// Check if some optional attributes are present in the guaranteed
+		// attributes hashset
+		for (String attr : sharedGuaranteedAttrsBetweenParentTransitions) {
+			sharedOptionalAttrsBetweenParentTransitions.remove(attr);
+		}
 
 		ParticipantInfo currentNodeParticipant = currentNode.getParticipant();
 
 		if (null != currentNodeParticipant) {
-			currentNodeParticipant.setGuaranteedCtxAttributes(new ArrayList<String>());
-			currentNodeParticipant.getGuaranteedCtxAttributes().addAll(sharedGuaranteedAttrsBetweenParentTransitions);
-			currentNodeParticipant.setOptionalCtxAttributes(new ArrayList<String>());
-			currentNodeParticipant.getOptionalCtxAttributes().addAll(sharedOptionalAttrsBetweenParentTransitions);
+			currentNodeParticipant
+					.setGuaranteedCtxAttributes(new ArrayList<String>());
+			currentNodeParticipant.getGuaranteedCtxAttributes().addAll(
+					sharedGuaranteedAttrsBetweenParentTransitions);
+			currentNodeParticipant
+					.setOptionalCtxAttributes(new ArrayList<String>());
+			currentNodeParticipant.getOptionalCtxAttributes().addAll(
+					sharedOptionalAttrsBetweenParentTransitions);
 		}
-		
+
 		String[] ctxAttrSetByDefault = null;
 		Map<String, String[]> currNodeUpdCtxAttrByTransNameMap = null;
 		if (null != currentNodeParticipant) {
@@ -510,15 +518,17 @@ public class MyGraphicalEditor extends GraphicalEditor {
 			if (null != currNodeUpdCtxAttrByTransNameMap) {
 				ctxAttrSetForTransName = currNodeUpdCtxAttrByTransNameMap
 						.get(transitionName);
-				
+
 				transition.setAttributesAdded(new ArrayList<String>());
-				
+
 				if (null != ctxAttrSetByDefault) {
-					Collections.addAll(transition.getAttributesAdded(), ctxAttrSetByDefault);
+					Collections.addAll(transition.getAttributesAdded(),
+							ctxAttrSetByDefault);
 				}
-				
+
 				if (null != ctxAttrSetForTransName) {
-					Collections.addAll(transition.getAttributesAdded(), ctxAttrSetForTransName);
+					Collections.addAll(transition.getAttributesAdded(),
+							ctxAttrSetForTransName);
 				}
 			}
 

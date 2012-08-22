@@ -1,5 +1,0 @@
-GEF -> propose une séparation M(à discrètion du développeur),V(figures draw2d), C(editpart GEF)
-
-Draw2D -> vue (figures), mais en même temps propose tout ce qu'il faut pour faire un graphe, et en l'occurrence fournira la partie modèle du graphe (DirectedGraph, Node, Edge)
-
-Avant rendu, le graphe devra être visité par un DirectedGraphLayout qui recalculera les coordonnées X,Y des noeuds

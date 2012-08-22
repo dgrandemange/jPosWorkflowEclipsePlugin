@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: jPos Workflow viewer Plug-in
 Bundle-SymbolicName: org.jpos.jposext.jposworkflow;singleton:=true
-Bundle-Version: 1.1.0.beta20120817160000
+Bundle-Version: 1.1.0.beta20120822152400
 Bundle-ClassPath: .,
  lib/jdom-1.0.jar,
  lib/commons-logging.jar,
