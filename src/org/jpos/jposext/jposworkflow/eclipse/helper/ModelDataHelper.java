@@ -3,6 +3,7 @@ package org.jpos.jposext.jposworkflow.eclipse.helper;
 import org.jpos.jposext.jposworkflow.eclipse.model.NodeDataWrapper;
 import org.jpos.jposext.jposworkflow.model.NodeNatureEnum;
 import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
+import org.jpos.jposext.jposworkflow.model.SubFlowInfo;
 
 /**
  * @author dgrandemange
@@ -10,23 +11,28 @@ import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
  */
 public class ModelDataHelper {
 	public static String getLabelFromNodeData(Object data) {
+		String label;
+		
 		NodeDataWrapper dataWrapper = (NodeDataWrapper) data;
 		ParticipantInfo pInfo = dataWrapper.getpInfo();
-		String className = pInfo.getClazz();
-		int idx = className.lastIndexOf(".");
-		String simpleClassName;
-		if ((idx > -1) && (idx + 1 < className.length())) {
-			simpleClassName = className.substring(idx + 1);
+		if (isSubFlow(data)) {
+			label = pInfo.getGroupName();
 		} else {
-			simpleClassName = className;
+			String className = pInfo.getClazz();
+			int idx = className.lastIndexOf(".");
+			String simpleClassName;
+			if ((idx > -1) && (idx + 1 < className.length())) {
+				simpleClassName = className.substring(idx + 1);
+			} else {
+				simpleClassName = className;
+			}
+			if (isUndefined(data)) {
+				label = String.format("%s:%s", getGroupName(data),
+						simpleClassName);
+			} else {
+				label = simpleClassName;
+			}
 		}
-		String label;
-		if (isUndefined(data)) {
-			label = String.format("%s:%s", getGroupName(data), simpleClassName);
-		} else {
-			label = simpleClassName;
-		}
-
 		return label;
 	}
 
@@ -40,6 +46,17 @@ public class ModelDataHelper {
 			if (null != groupName) {
 				res = !("".equals(groupName.trim()));
 			}
+		}
+		return res;
+	}
+
+	public static boolean isSubFlow(Object data) {
+		boolean res = false;
+		NodeDataWrapper dataWrapper = (NodeDataWrapper) data;
+		ParticipantInfo pInfo = dataWrapper.getpInfo();
+
+		if (null != pInfo) {
+			return (pInfo instanceof SubFlowInfo);
 		}
 		return res;
 	}

@@ -267,7 +267,8 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 							dynaGroupCounter.inc());
 					pReducedGroups.put(dynaGroupId, lstParticipantsDynaGroup);
 
-					ParticipantInfo clonePInfo = clone(pInfo);
+//					ParticipantInfo clonePInfo = (ParticipantInfo) pInfo.clone();
+					ParticipantInfo clonePInfo = GraphHelper.getCopy(pInfo);
 					clonePInfo.setGroupName(dynaGroupId);
 
 					lstParticipantsDynaGroup.add(clonePInfo);
@@ -275,7 +276,8 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 				} else {
 					List<ParticipantInfo> lstParticipantsDynaGroup = new ArrayList<ParticipantInfo>();
 
-					ParticipantInfo clonePInfo = clone(pInfo);
+//					ParticipantInfo clonePInfo = (ParticipantInfo) pInfo.clone();
+					ParticipantInfo clonePInfo = GraphHelper.getCopy(pInfo);
 					lstParticipantsDynaGroup.add(clonePInfo);
 
 					pReducedGroups
@@ -291,30 +293,14 @@ public class TxnMgrGroupsConverterImpl implements ITxnMgrGroupsConverter {
 		for (Entry<String, List<ParticipantInfo>> entry : pgroups.entrySet()) {
 			List<ParticipantInfo> clonedList = new ArrayList<ParticipantInfo>();
 			for (ParticipantInfo pInfo : entry.getValue()) {
-				clonedList.add(clone(pInfo));
+//				clonedList.add((ParticipantInfo) pInfo.clone());
+				clonedList.add(GraphHelper.getCopy(pInfo));
 			}
 			resClone.put(entry.getKey(), clonedList);
 		}
 		return resClone;
 	}
-
-	protected ParticipantInfo clone(ParticipantInfo pInfo) {
-		Map<String, SelectCriterion> selectCriteria = pInfo.getSelectCriteria();
-		Map<String, SelectCriterion> cloneSelectCriteria = new HashMap<String, SelectCriterion>();
-		for (Entry<String, SelectCriterion> entryCriterion : selectCriteria
-				.entrySet()) {
-			SelectCriterion criterion = entryCriterion.getValue();
-			SelectCriterion cloneCriterion = new SelectCriterion(
-					criterion.getName(), criterion.getValue(),
-					criterion.getDesc());
-			cloneSelectCriteria.put(entryCriterion.getKey(), cloneCriterion);
-		}
-		ParticipantInfo clonePInfo = new ParticipantInfo(pInfo.getClazz(),
-				pInfo.getGroupName(), cloneSelectCriteria);
-		clonePInfo.setUpdCtxAttrByTransId(pInfo.getUpdCtxAttrByTransId());
-		return clonePInfo;
-	}
-
+	
 	protected void createTransition(Graph graph, String tid, Node source,
 			Node target, String tname, String tdesc) {
 		Transition t = new Transition(tid, tname, source, target);

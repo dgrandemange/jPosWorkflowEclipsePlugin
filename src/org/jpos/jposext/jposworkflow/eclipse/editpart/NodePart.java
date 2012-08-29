@@ -34,17 +34,24 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 import org.jpos.jposext.jposworkflow.eclipse.MyEditorInput;
+import org.jpos.jposext.jposworkflow.eclipse.MyGraphicalEditor;
 import org.jpos.jposext.jposworkflow.eclipse.figure.FinalNodeFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.InitialNodeFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.NodeFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.NodeInfoFigure;
 import org.jpos.jposext.jposworkflow.eclipse.helper.ModelDataHelper;
 import org.jpos.jposext.jposworkflow.eclipse.model.NodeDataWrapper;
+import org.jpos.jposext.jposworkflow.eclipse.service.support.ContextMgmtInfoPopulatorEclipsePluginImpl;
+import org.jpos.jposext.jposworkflow.helper.GraphHelper;
+import org.jpos.jposext.jposworkflow.model.Graph;
 import org.jpos.jposext.jposworkflow.model.NodeNatureEnum;
 import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
+import org.jpos.jposext.jposworkflow.model.SubFlowInfo;
+import org.jpos.jposext.jposworkflow.model.Transition;
 
 /**
  * @author dgrandemange
@@ -84,6 +91,14 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 			NodePart.class
 					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/initial-state.gif"));
 
+	private static final ImageData IMAGE_DATA__DEFINED_SUBFLOW_ICON = new ImageData(
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/subflow.png"));
+
+	private static final ImageData IMAGE_DATA__UNDEF_SUBFLOW_ICON = new ImageData(
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/subflow-undef.png"));	
+	
 	private static Font labelIdFont = new Font(null, "Arial", 10, SWT.BOLD);;
 
 	@Override
@@ -148,7 +163,12 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 				if (ModelDataHelper.isUndefined(model.data)) {
 					imgData = IMAGE_DATA__UNDEF_GROUP_ICON;
 				} else {
-					imgData = IMAGE_DATA__DEFINED_GROUP_ICON;
+					if (ModelDataHelper.isSubFlow(model.data)) {
+						imgData = IMAGE_DATA__DEFINED_SUBFLOW_ICON;
+					}
+					else {
+						imgData = IMAGE_DATA__DEFINED_GROUP_ICON;	
+					}					
 				}
 
 				img = new Image(Display.getCurrent(), imgData);
@@ -182,7 +202,7 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 			nodeInfoFigure.getName().setIcon(img);
 			nodeInfoFigure.getName().setFont(labelIdFont);
 
-			completeNodeInfoFifureWithAttrInfo(model, nodeInfoFigure);
+			completeNodeInfoFigureWithAttrInfo(model, nodeInfoFigure);
 
 			nodeFigure.setToolTip(nodeInfoFigure);
 
@@ -204,7 +224,7 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 			nodeInfoFigure.getName().setText("Final state");
 			nodeInfoFigure.getName().setFont(labelIdFont);
 			
-			completeNodeInfoFifureWithAttrInfo(model, nodeInfoFigure);
+			completeNodeInfoFigureWithAttrInfo(model, nodeInfoFigure);
 
 			nodeFigure.setToolTip(nodeInfoFigure);			
 		}
@@ -214,7 +234,7 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 		((GraphicalEditPart) getParent()).setLayoutConstraint(this, figure, r);
 	}
 
-	protected void completeNodeInfoFifureWithAttrInfo(Node model,
+	protected void completeNodeInfoFigureWithAttrInfo(Node model,
 			NodeInfoFigure nodeInfoFigure) {
 		ParticipantInfo pInfo = ModelDataHelper
 				.getWrappedParticipantInfo(model.data);
@@ -342,103 +362,150 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 				}
 
 				ParticipantInfo pInfo = ndw.getpInfo();
-				String className = pInfo.getClazz();
+				if (pInfo instanceof SubFlowInfo) {
+					SubFlowInfo subFlowInfo = (SubFlowInfo) pInfo;
+					Graph subFlowGraph = subFlowInfo.getSubFlowGraph(); 
+					if (null != subFlowGraph) {
+						
+						Graph subFlowGraphClone = GraphHelper.getCopy(subFlowGraph);
+						
+						org.jpos.jposext.jposworkflow.model.Node initialNode = subFlowGraphClone.getInitialNode();						
+						
+						Transition initialTransition = initialNode.getLstTransitionsAsSource().get(0);
+						
+						ArrayList<String> guaranteedCtxAttributes = new ArrayList<String>();
+						initialTransition.setGuaranteedCtxAttributes(guaranteedCtxAttributes);
+						if (null != pInfo.getGuaranteedCtxAttributes()) {
+							for (String attr : pInfo.getGuaranteedCtxAttributes()) {
+								guaranteedCtxAttributes.add(attr);
+							}
+						}
 
-				String javaClassPathFromFullClassName = getJavaClassPathFromFullClassName(className);
-				IPath path = new Path(javaClassPathFromFullClassName);
+						ArrayList<String> optionalCtxAttributes = new ArrayList<String>();
+						initialTransition.setOptionalCtxAttributes(optionalCtxAttributes);
+						if (null != pInfo.getOptionalCtxAttributes()) {
+							for (String attr : pInfo.getOptionalCtxAttributes()) {
+								optionalCtxAttributes.add(attr);
+							}
+						}
+						
+						ContextMgmtInfoPopulatorEclipsePluginImpl ctxMgmtInfoPopulator = new ContextMgmtInfoPopulatorEclipsePluginImpl(project);
+						ctxMgmtInfoPopulator.updateReducedGraph(subFlowGraphClone);						
+						
+						MyEditorInput currentEditorInput = getCurrentEditorInput();
+						String subflowEditorName = String.format("%s->%s", currentEditorInput.getName(),subFlowInfo.getGroupName());
+						MyEditorInput subFlowEditorInput = new MyEditorInput(subflowEditorName,
+								subFlowGraphClone);
+						subFlowEditorInput.setProject(project);
+						try {
+							MyGraphicalEditor openEditor = (MyGraphicalEditor) page.openEditor(subFlowEditorInput, MyGraphicalEditor.ID, false);
+							openEditor.setPartName(subflowEditorName);
+						} catch (PartInitException e) {
+							e.printStackTrace();
+							throw new RuntimeException(e);
+						}
+					}
 
-				if (null == path) {
-					return;
-				}
-
-				IJavaProject jProject = (IJavaProject) project
-						.getNature(JavaCore.NATURE_ID);
-				IJavaElement jElt = jProject.findElement(path);
-				IFile fileToBeOpened = null;
-
-				if (null != jElt) {
-					IPath path2 = jElt.getPath();
-
-					fileToBeOpened = project.getWorkspace().getRoot()
-							.getFile(path2);
-				}
-
-				// if (null == fileToBeOpened) {
-				// String value = className;
-				// value = NodePart.trimNonAlphaChars(value);
-				// IJavaProject javaProject = JavaCore.create(project);
-				// IPackageFragmentRoot srcEntryDft = null;
-				// IPackageFragmentRoot[] roots = javaProject
-				// .getPackageFragmentRoots();
-				// for (int i = 0; i < roots.length; i++) {
-				// if (roots[i].getKind() == IPackageFragmentRoot.K_SOURCE) {
-				// srcEntryDft = roots[i];
-				// break;
-				// }
-				// }
-				//
-				// IPackageFragmentRoot packageRoot;
-				//
-				// if (srcEntryDft != null)
-				// packageRoot = srcEntryDft;
-				// else
-				// packageRoot = javaProject
-				// .getPackageFragmentRoot(javaProject
-				// .getResource());
-				//
-				// String packageNameString = null;
-				//					int index = value.lastIndexOf("."); //$NON-NLS-1$
-				// if (index == -1) {
-				// className = value;
-				// } else {
-				// className = value.substring(index + 1);
-				// packageNameString = value.substring(0, index);
-				// }
-				// IPackageFragment packageName = null;
-				// if (packageNameString != null && packageRoot != null) {
-				// IFolder packageFolder = project
-				// .getFolder(packageNameString);
-				// packageName = packageRoot
-				// .getPackageFragment(packageFolder
-				// .getProjectRelativePath().toOSString());
-				// }
-				//
-				// NewClassWizardPage wzPage = new NewClassWizardPage();
-				// wzPage.init(StructuredSelection.EMPTY);
-				// wzPage.setTypeName(className, true);
-				// wzPage.setPackageFragmentRoot(packageRoot, true);
-				// wzPage.setPackageFragment(packageName, true);
-				//
-				// Wizard wizard = new Wizard() {
-				//
-				// @Override
-				// public boolean performFinish() {
-				// return true;
-				// }
-				// };
-				// wizard.setNeedsProgressMonitor(false);
-				// wizard.addPage(wzPage);
-				//
-				// WizardDialog wd = new WizardDialog(getDisplay()
-				// .getActiveShell(), wizard);
-				// wd.setTitle(wizard.getWindowTitle());
-				// wd.open();
-				//
-				//
-				// return;
-				// }
-
-				if (null != fileToBeOpened) {
-					IEditorInput editorInput = new FileEditorInput(
-							fileToBeOpened);
-					IEditorDescriptor desc = PlatformUI.getWorkbench()
-							.getEditorRegistry()
-							.getDefaultEditor(fileToBeOpened.getName());
-
-					page.openEditor(editorInput, desc.getId());
+				} else {					
+					String className = pInfo.getClazz();
+	
+					String javaClassPathFromFullClassName = getJavaClassPathFromFullClassName(className);
+					IPath path = new Path(javaClassPathFromFullClassName);
+	
+					if (null == path) {
+						return;
+					}
+	
+					IJavaProject jProject = (IJavaProject) project
+							.getNature(JavaCore.NATURE_ID);
+					IJavaElement jElt = jProject.findElement(path);
+					IFile fileToBeOpened = null;
+	
+					if (null != jElt) {
+						IPath path2 = jElt.getPath();
+	
+						fileToBeOpened = project.getWorkspace().getRoot()
+								.getFile(path2);
+					}
+	
+					// if (null == fileToBeOpened) {
+					// String value = className;
+					// value = NodePart.trimNonAlphaChars(value);
+					// IJavaProject javaProject = JavaCore.create(project);
+					// IPackageFragmentRoot srcEntryDft = null;
+					// IPackageFragmentRoot[] roots = javaProject
+					// .getPackageFragmentRoots();
+					// for (int i = 0; i < roots.length; i++) {
+					// if (roots[i].getKind() == IPackageFragmentRoot.K_SOURCE) {
+					// srcEntryDft = roots[i];
+					// break;
+					// }
+					// }
+					//
+					// IPackageFragmentRoot packageRoot;
+					//
+					// if (srcEntryDft != null)
+					// packageRoot = srcEntryDft;
+					// else
+					// packageRoot = javaProject
+					// .getPackageFragmentRoot(javaProject
+					// .getResource());
+					//
+					// String packageNameString = null;
+					//					int index = value.lastIndexOf("."); //$NON-NLS-1$
+					// if (index == -1) {
+					// className = value;
+					// } else {
+					// className = value.substring(index + 1);
+					// packageNameString = value.substring(0, index);
+					// }
+					// IPackageFragment packageName = null;
+					// if (packageNameString != null && packageRoot != null) {
+					// IFolder packageFolder = project
+					// .getFolder(packageNameString);
+					// packageName = packageRoot
+					// .getPackageFragment(packageFolder
+					// .getProjectRelativePath().toOSString());
+					// }
+					//
+					// NewClassWizardPage wzPage = new NewClassWizardPage();
+					// wzPage.init(StructuredSelection.EMPTY);
+					// wzPage.setTypeName(className, true);
+					// wzPage.setPackageFragmentRoot(packageRoot, true);
+					// wzPage.setPackageFragment(packageName, true);
+					//
+					// Wizard wizard = new Wizard() {
+					//
+					// @Override
+					// public boolean performFinish() {
+					// return true;
+					// }
+					// };
+					// wizard.setNeedsProgressMonitor(false);
+					// wizard.addPage(wzPage);
+					//
+					// WizardDialog wd = new WizardDialog(getDisplay()
+					// .getActiveShell(), wizard);
+					// wd.setTitle(wizard.getWindowTitle());
+					// wd.open();
+					//
+					//
+					// return;
+					// }
+	
+					if (null != fileToBeOpened) {
+						IEditorInput editorInput = new FileEditorInput(
+								fileToBeOpened);
+						IEditorDescriptor desc = PlatformUI.getWorkbench()
+								.getEditorRegistry()
+								.getDefaultEditor(fileToBeOpened.getName());
+	
+						page.openEditor(editorInput, desc.getId());
+					}
 				}
 			} catch (CoreException e) {
 				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 
 		}
@@ -496,6 +563,16 @@ public class NodePart extends AbstractGraphicalEditPart implements NodeEditPart 
 		return value;
 	}
 
+	public MyEditorInput getCurrentEditorInput() {
+		IEditorPart editorPart = PlatformUI.getWorkbench()
+				.getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+		if (editorPart != null) {
+			MyEditorInput editorInput = (MyEditorInput) editorPart.getEditorInput();
+			return editorInput;
+		}
+		return null;
+	}
+	
 	public IProject getCurrentProject() {
 		IEditorPart editorPart = PlatformUI.getWorkbench()
 				.getActiveWorkbenchWindow().getActivePage().getActiveEditor();

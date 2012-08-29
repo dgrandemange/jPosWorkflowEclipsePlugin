@@ -24,6 +24,10 @@ import org.jpos.jposext.jposworkflow.eclipse.figure.CompartmentFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.EdgeFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.TransitionAttrsCompartmentFigure;
 import org.jpos.jposext.jposworkflow.eclipse.figure.TransitionInfoFigure;
+import org.jpos.jposext.jposworkflow.model.Graph;
+import org.jpos.jposext.jposworkflow.model.Node;
+import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
+import org.jpos.jposext.jposworkflow.model.SubFlowInfo;
 import org.jpos.jposext.jposworkflow.model.Transition;
 
 /**
@@ -34,15 +38,22 @@ public class EdgePart extends AbstractConnectionEditPart {
 
 	private static final ImageData IMAGE_DATA__CTX_ATTR_ADDED_ICON = new ImageData(
 			EdgePart.class
-					.getResourceAsStream(
-							"/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-put.png"));
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-put.png"));
 	private static final ImageData IMAGE_DATA__TRANSISTION_ICON = new ImageData(
 			EdgePart.class
 					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/transition.png"));
 	private static final ImageData IMAGE_DATA__INFO_ICON = new ImageData(
 			EdgePart.class
 					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/information.png"));
-	
+
+	private static final ImageData IMAGE_DATA__CTX_ATTR_GUARANTEED_ICON = new ImageData(
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-guaranteed.png"));
+
+	private static final ImageData IMAGE_DATA__CTX_ATTR_OPTIONAL_ICON = new ImageData(
+			NodePart.class
+					.getResourceAsStream("/org/jpos/jposext/jposworkflow/eclipse/res/img/ctx-attr-optional.png"));
+
 	private static final int EGDGE_NOT_SELECTED_WIDTH = 1;
 	private static final int EGDGE_SELECTED_WIDTH = 3;
 
@@ -140,24 +151,7 @@ public class EdgePart extends AbstractConnectionEditPart {
 		transitionInfoFigure.getTransitionDescFigureCompartment().add(
 				transitionDescLabel);
 
-		Image ctxAttrPutImg = new Image(Display.getCurrent(), IMAGE_DATA__CTX_ATTR_ADDED_ICON);
-
-		CompartmentFigure compartmentFigure = new CompartmentFigure();
-		compartmentFigure.setParent(transitionInfoFigure);
-
-		List<String> attributesAddedOnTransition = t.getAttributesAdded();
-		if (null != attributesAddedOnTransition) {
-			TransitionAttrsCompartmentFigure attrsCompartmentFigure = new TransitionAttrsCompartmentFigure();
-			for (String attr : attributesAddedOnTransition) {
-				Label attrLabel = new Label(attr, ctxAttrPutImg);
-				attrLabel.setTextPlacement(PositionConstants.WEST);
-				attrsCompartmentFigure.add(attrLabel);
-			}
-
-			compartmentFigure.add(attrsCompartmentFigure);
-		}
-
-		transitionInfoFigure.add(compartmentFigure);
+		completeTransistionInfoFigureWithAttrInfo(t, transitionInfoFigure);
 
 		figure.setToolTip(transitionInfoFigure);
 
@@ -195,6 +189,93 @@ public class EdgePart extends AbstractConnectionEditPart {
 	@Override
 	public IFigure getContentPane() {
 		return super.getContentPane();
+	}
+
+	protected void completeTransistionInfoFigureWithAttrInfo(Transition t,
+			TransitionInfoFigure transitionInfoFigure) {
+
+		SubFlowInfo subFlowInfo = null;
+		ParticipantInfo pInfo = t.getSource().getParticipant();
+		if (null != pInfo) {
+			if (pInfo instanceof SubFlowInfo) {
+				subFlowInfo = (SubFlowInfo) pInfo;
+			}
+		}
+
+		if (null == subFlowInfo) {
+			Image ctxAttrPutImg = new Image(Display.getCurrent(),
+					IMAGE_DATA__CTX_ATTR_ADDED_ICON);
+
+			CompartmentFigure compartmentFigure = new CompartmentFigure();
+			compartmentFigure.setParent(transitionInfoFigure);
+
+			List<String> attributesAddedOnTransition = t.getAttributesAdded();
+			if (null != attributesAddedOnTransition) {
+				TransitionAttrsCompartmentFigure attrsCompartmentFigure = new TransitionAttrsCompartmentFigure();
+				for (String attr : attributesAddedOnTransition) {
+					Label attrLabel = new Label(attr, ctxAttrPutImg);
+					attrLabel.setTextPlacement(PositionConstants.WEST);
+					attrsCompartmentFigure.add(attrLabel);
+				}
+
+				compartmentFigure.add(attrsCompartmentFigure);
+			}
+
+			transitionInfoFigure.add(compartmentFigure);
+		} else {
+			ParticipantInfo subFlowFinalNodeInfo = null;
+			Graph subFlowGraph = subFlowInfo.getSubFlowGraph();
+			if (null != subFlowGraph) {
+				Node subFlowFinalNode = subFlowGraph.getFinalNode();
+				subFlowFinalNodeInfo = subFlowFinalNode.getParticipant();
+			}
+
+			if (null != subFlowFinalNodeInfo) {
+
+				CompartmentFigure guaranteedAttrsFigureCompartment = new CompartmentFigure();
+
+				Image ctxAttrGuaranteedImg = new Image(Display.getCurrent(),
+						IMAGE_DATA__CTX_ATTR_GUARANTEED_ICON);
+				if (null != subFlowFinalNodeInfo.getGuaranteedCtxAttributes()
+						&& subFlowFinalNodeInfo.getGuaranteedCtxAttributes().size() > 0) {
+					for (String guaranteedCtxAttr : subFlowFinalNodeInfo
+							.getGuaranteedCtxAttributes()) {
+						guaranteedAttrsFigureCompartment.add(new Label(
+								guaranteedCtxAttr, ctxAttrGuaranteedImg));
+					}
+				} else {
+					Font nonGuranteedAttrLabelFont = new Font(null, "Arial",
+							10, SWT.ITALIC);
+					Label nonGuranteedAttrlabel = new Label(
+							"<no guaranteed attributes>", ctxAttrGuaranteedImg);
+					nonGuranteedAttrlabel.setFont(nonGuranteedAttrLabelFont);
+					guaranteedAttrsFigureCompartment.add(nonGuranteedAttrlabel);
+				}
+
+				transitionInfoFigure.add(guaranteedAttrsFigureCompartment);
+
+				CompartmentFigure optionalAttrsFigure = new CompartmentFigure();
+
+				Image ctxAttrOptionalImg = new Image(Display.getCurrent(),
+						IMAGE_DATA__CTX_ATTR_OPTIONAL_ICON);
+				if (null != subFlowFinalNodeInfo.getOptionalCtxAttributes()
+						&& subFlowFinalNodeInfo.getOptionalCtxAttributes().size() > 0) {
+					for (String optionalCtxAttr : subFlowFinalNodeInfo
+							.getOptionalCtxAttributes()) {
+						optionalAttrsFigure.add(new Label(optionalCtxAttr,
+								ctxAttrOptionalImg));
+					}
+				} else {
+					Font noOptionalAttrlabelFont = new Font(null, "Arial", 10,
+							SWT.ITALIC);
+					Label noOptionalAttrlabel = new Label(
+							"<no optional attributes>", ctxAttrOptionalImg);
+					noOptionalAttrlabel.setFont(noOptionalAttrlabelFont);
+					optionalAttrsFigure.add(noOptionalAttrlabel);
+				}
+				transitionInfoFigure.add(optionalAttrsFigure);
+			}
+		}
 	}
 
 }

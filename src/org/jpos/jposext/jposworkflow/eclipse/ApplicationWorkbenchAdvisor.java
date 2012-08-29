@@ -1,16 +1,8 @@
 package org.jpos.jposext.jposworkflow.eclipse;
 
-import java.net.URL;
-import java.util.List;
-import java.util.Map;
-
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.application.IWorkbenchWindowConfigurer;
 import org.eclipse.ui.application.WorkbenchAdvisor;
 import org.eclipse.ui.application.WorkbenchWindowAdvisor;
-import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
-import org.jpos.jposext.jposworkflow.service.support.TxnMgrConfigParserImpl;
 
 /**
  * @author dgrandemange
@@ -25,22 +17,6 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
      */
     @Override
     public void postStartup() {
-        try {
-            IWorkbenchPage page = PlatformUI.getWorkbench()
-                    .getActiveWorkbenchWindow().getActivePage();
-            TxnMgrConfigParserImpl txnMgrConfigParserImpl = new TxnMgrConfigParserImpl();
-
-            //String resourceName = "/org/jpos/jposext/jposworkflow/sample/cfg/deploy/txMgrConfigWithTransitions.xml";
-            String resourceName = "/org/jpos/jposext/jposworkflow/sample/cfg/deploy/Financial.inc";
-			URL resource = this.getClass().getResource(resourceName);
-			Map<String, List<ParticipantInfo>> parsed = txnMgrConfigParserImpl.parse(resource);
-			
-			MyGraphicalEditor openEditor = (MyGraphicalEditor) page.openEditor(new MyEditorInput(resourceName, parsed), MyGraphicalEditor.ID, false);
-            openEditor.setPartName(resourceName);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private static final String PERSPECTIVE_ID = "org.jpos.jposext.jposworkflow.eclipse.perspective";

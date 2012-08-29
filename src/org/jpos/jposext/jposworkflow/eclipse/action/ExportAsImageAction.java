@@ -48,12 +48,20 @@ public class ExportAsImageAction extends SelectionAction {
 		HashMap<String, String> reqData = new HashMap<String, String>();
 		// reqData.put("newName", name);
 		renameReq.setExtendedData(reqData);
-		EditPart object = (EditPart) getSelectedObjects().get(0);
-		Command cmd = object.getCommand(renameReq);
-		return cmd;
+		Object selectedObject = getSelectedObjects().get(0);
+		if (selectedObject instanceof EditPart) {		
+			Command cmd = ((EditPart) selectedObject).getCommand(renameReq);
+			return cmd;
+		}
+		else {
+			return null;
+		}
 	}
 
 	public void run() {
-		execute(createSaveImageCommand());
+		Command createSaveImageCommand = createSaveImageCommand();
+		if (null != createSaveImageCommand) {
+			execute(createSaveImageCommand);
+		}
 	}
 }

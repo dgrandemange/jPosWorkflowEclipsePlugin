@@ -3,8 +3,6 @@ package org.jpos.jposext.jposworkflow.eclipse.command;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.util.List;
-import java.util.Map;
 
 import org.eclipse.gef.EditPart;
 import org.eclipse.gef.GraphicalViewer;
@@ -13,10 +11,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.jpos.jposext.jposworkflow.model.Graph;
-import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
 import org.jpos.jposext.jposworkflow.service.support.GraphConverterServiceImpl;
-import org.jpos.jposext.jposworkflow.service.support.GraphReducerImpl;
-import org.jpos.jposext.jposworkflow.service.support.TxnMgrGroupsConverterImpl;
 
 /**
  * @author dgrandemange
@@ -24,18 +19,13 @@ import org.jpos.jposext.jposworkflow.service.support.TxnMgrGroupsConverterImpl;
  */
 public class ExportAsDOTCommand extends Command {
 
-	private Map<String, List<ParticipantInfo>> jPosTxnMgrGroups;
-
+	private Graph graph;
+	
 	private EditPart editPart;
 
 	private String defaultName;
 
 	private void createDOTFile() {
-
-		TxnMgrGroupsConverterImpl txnMgrGroupsConverter = new TxnMgrGroupsConverterImpl();
-		Graph genGraph = txnMgrGroupsConverter.toGraph(jPosTxnMgrGroups);
-
-		Graph reducedGraph = (new GraphReducerImpl()).reduce(genGraph);
 
 		GraphConverterServiceImpl graphConverterService = new GraphConverterServiceImpl();
 
@@ -43,15 +33,18 @@ public class ExportAsDOTCommand extends Command {
 		FileOutputStream result = null;
 		PrintWriter pw = null;
 		try {
-			result = new FileOutputStream(getSaveFilePath(shell,
-					(GraphicalViewer) editPart.getViewer()));
-			pw = new PrintWriter(result);
-			graphConverterService
-					.convertGraphToDOT(
-							"jPos Workflow Eclipse Plugin DOT Export",
-							reducedGraph, pw);
-			pw.flush();
-			pw.close();
+			String saveFilePath = getSaveFilePath(shell,
+					(GraphicalViewer) editPart.getViewer());
+			if (null != saveFilePath) {
+				result = new FileOutputStream(saveFilePath);
+				pw = new PrintWriter(result);
+				graphConverterService
+						.convertGraphToDOT(
+								"jPos Workflow Eclipse Plugin DOT Export",
+								graph, pw);
+				pw.flush();
+				pw.close();
+			}
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -87,17 +80,19 @@ public class ExportAsDOTCommand extends Command {
 		return filePath;
 	}
 
-	public void setJPosTxnMgrGroups(
-			Map<String, List<ParticipantInfo>> jPosTxnMgrGroups) {
-		this.jPosTxnMgrGroups = jPosTxnMgrGroups;
-	}
-
 	/**
 	 * @param defaultName
 	 *            the defaultName to set
 	 */
 	public void setDefaultName(String defaultName) {
 		this.defaultName = defaultName;
+	}
+
+	/**
+	 * @param graph the graph to set
+	 */
+	public void setGraph(Graph graph) {
+		this.graph = graph;
 	}
 
 }

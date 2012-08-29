@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * @author dgrandemange
- *
+ * 
  */
 public class ParticipantInfo {
 
@@ -18,13 +18,13 @@ public class ParticipantInfo {
 	private String groupName;
 
 	private Map<String, SelectCriterion> selectCriteria;
-	
+
 	private List<String> guaranteedCtxAttributes;
-	
-	private List<String> optionalCtxAttributes;	
-	
+
+	private List<String> optionalCtxAttributes;
+
 	/**
-	 * Updated context attributes by transition id 
+	 * Updated context attributes by transition id
 	 */
 	private Map<String, String[]> updCtxAttrByTransId;
 
@@ -79,7 +79,8 @@ public class ParticipantInfo {
 	}
 
 	/**
-	 * @param updCtxAttrByTransId the updCtxAttrByTransId to set
+	 * @param updCtxAttrByTransId
+	 *            the updCtxAttrByTransId to set
 	 */
 	public void setUpdCtxAttrByTransId(Map<String, String[]> updCtxAttrByTransId) {
 		this.updCtxAttrByTransId = updCtxAttrByTransId;
@@ -93,7 +94,8 @@ public class ParticipantInfo {
 	}
 
 	/**
-	 * @param guaranteedCtxAttributes the guaranteedCtxAttributes to set
+	 * @param guaranteedCtxAttributes
+	 *            the guaranteedCtxAttributes to set
 	 */
 	public void setGuaranteedCtxAttributes(List<String> guaranteedCtxAttributes) {
 		this.guaranteedCtxAttributes = guaranteedCtxAttributes;
@@ -107,7 +109,8 @@ public class ParticipantInfo {
 	}
 
 	/**
-	 * @param optionalCtxAttributes the optionalCtxAttributes to set
+	 * @param optionalCtxAttributes
+	 *            the optionalCtxAttributes to set
 	 */
 	public void setOptionalCtxAttributes(List<String> optionalCtxAttributes) {
 		this.optionalCtxAttributes = optionalCtxAttributes;

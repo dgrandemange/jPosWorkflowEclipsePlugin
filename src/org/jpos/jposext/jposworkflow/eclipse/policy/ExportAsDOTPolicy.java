@@ -28,7 +28,7 @@ public class ExportAsDOTPolicy extends AbstractEditPolicy {
 				.getActiveWorkbenchWindow().getActivePage();
 		MyEditorInput editorInput = (MyEditorInput) page.getActiveEditor()
 				.getEditorInput();
-		command.setJPosTxnMgrGroups(editorInput.getJPosTxnMgrGroups());
+		command.setGraph(editorInput.getGraph());
 
 		RootEditPart rootEditPart = this.getHost().getRoot();
 		command.setEditPart(rootEditPart);

@@ -1,13 +1,10 @@
 package org.jpos.jposext.jposworkflow.eclipse;
 
-import java.util.List;
-import java.util.Map;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
-import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
+import org.jpos.jposext.jposworkflow.model.Graph;
 
 /**
  * @author dgrandemange
@@ -17,16 +14,16 @@ public class MyEditorInput implements IEditorInput {
 
 	public String name = null;
 
-	private Map<String, List<ParticipantInfo>> jposTxnMgrGroups;
-
+	private Graph graph;
+	
 	private IProject project;
 
 	public MyEditorInput(String name,
-			Map<String, List<ParticipantInfo>> jposTxnMgrGroups) {
+	Graph graph) {
 		this.name = name;
-		this.jposTxnMgrGroups = jposTxnMgrGroups;
-	}
-
+		this.graph = graph;
+}	
+	
 	public boolean equals(Object o) {
 		if (!(o instanceof MyEditorInput))
 			return false;
@@ -38,7 +35,6 @@ public class MyEditorInput implements IEditorInput {
 	}
 
 	public ImageDescriptor getImageDescriptor() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -47,7 +43,6 @@ public class MyEditorInput implements IEditorInput {
 	}
 
 	public IPersistableElement getPersistable() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -56,15 +51,7 @@ public class MyEditorInput implements IEditorInput {
 	}
 
 	public Object getAdapter(Class adapter) {
-		// TODO Auto-generated method stub
 		return null;
-	}
-
-	/**
-	 * @return the springContext
-	 */
-	public Map<String, List<ParticipantInfo>> getJPosTxnMgrGroups() {
-		return jposTxnMgrGroups;
 	}
 
 	/**
@@ -80,6 +67,13 @@ public class MyEditorInput implements IEditorInput {
 	 */
 	public void setProject(IProject project) {
 		this.project = project;
+	}
+
+	/**
+	 * @return the graph
+	 */
+	public Graph getGraph() {
+		return graph;
 	}
 
 }

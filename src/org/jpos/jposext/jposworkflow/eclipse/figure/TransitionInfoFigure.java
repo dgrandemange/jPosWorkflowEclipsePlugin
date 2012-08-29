@@ -15,8 +15,7 @@ public class TransitionInfoFigure extends Figure {
 	public static Color classColor = new Color(null, 255, 255, 206);
 	
 	private CompartmentFigure transitionDescFigure = new CompartmentFigure();
-	private CompartmentFigure transitionsInfoFigureCompartment = new CompartmentFigure();
-
+	
 	public TransitionInfoFigure(Label name) {
 		ToolbarLayout layout = new ToolbarLayout();
 		setLayoutManager(layout);
@@ -27,7 +26,6 @@ public class TransitionInfoFigure extends Figure {
 		if (null != name) {
 			add(name);
 			add(transitionDescFigure);
-			add(transitionsInfoFigureCompartment);
 		}
 	}
 
@@ -35,7 +33,4 @@ public class TransitionInfoFigure extends Figure {
 		return transitionDescFigure;
 	}
 	
-	public CompartmentFigure getTransitionsInfoFigureCompartment() {
-		return transitionsInfoFigureCompartment;
-	}
 }

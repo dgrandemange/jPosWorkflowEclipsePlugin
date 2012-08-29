@@ -4,19 +4,19 @@ import java.util.List;
 
 /**
  * @author dgrandemange
- *
+ * 
  */
 public class Graph {
-	
-	public static final String INITIAL_NODE_TYPE="INITIAL_NODE";
-	public static final String INITIAL_NODE_ID="INITIAL";
-	public static final String FINAL_NODE_TYPE="FINAL_NODE";
-	public static final String FINAL_NODE_ID="FINAL";
-	
+
+	public static final String INITIAL_NODE_TYPE = "INITIAL_NODE";
+	public static final String INITIAL_NODE_ID = "INITIAL";
+	public static final String FINAL_NODE_TYPE = "FINAL_NODE";
+	public static final String FINAL_NODE_ID = "FINAL";
+
 	private Node initialNode;
-	
+
 	private Node finalNode;
-	
+
 	private List<Transition> lstTransitions;
 
 	public Graph(Node debutNode, Node finalNode, List<Transition> lstTransitions) {
@@ -49,5 +49,5 @@ public class Graph {
 	public void setLstTransitions(List<Transition> lstTransitions) {
 		this.lstTransitions = lstTransitions;
 	}
-		
+
 }

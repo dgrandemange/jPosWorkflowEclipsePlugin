@@ -41,11 +41,17 @@
             <separator name="group1"/>
          </menu>
          <action
-               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.NewAction"
+               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphNotExpanded"
                enablesFor="1"
-               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.newAction"
-               label="view graph"
+               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.1.viewGraphNotExpanded"
+               label="view graph (entity refs as subflows)"
                menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>
+         <action
+               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphExpanded"
+               enablesFor="1"
+               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.2.viewGraphExpanded"
+               label="view graph (expanded)"
+               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>               
       </objectContribution>
    </extension>
    <extension
@@ -61,11 +67,17 @@
             <separator name="group1"/>
          </menu>
          <action
-               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.NewAction"
+               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphNotExpanded"
                enablesFor="1"
-               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.newAction"
-               label="view graph"
+               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.1.viewGraphNotExpanded"
+               label="view graph (entity refs as subflows)"
                menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>
+         <action
+               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphExpanded"
+               enablesFor="1"
+               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.2.viewGraphExpanded"
+               label="view graph (expanded)"
+               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>                              
       </objectContribution>
    </extension>
 </plugin>
