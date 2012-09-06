@@ -11,7 +11,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.jpos.jposext.jposworkflow.model.Graph;
+import org.jpos.jposext.jposworkflow.service.IDOTLabelFactory;
 import org.jpos.jposext.jposworkflow.service.support.GraphConverterServiceImpl;
+import org.jpos.jposext.jposworkflow.service.support.LabelFactoryVelocityImpl;
+import org.jpos.jposext.jposworkflow.service.support.TooltipFactoryVelocityImpl;
 
 /**
  * @author dgrandemange
@@ -27,7 +30,12 @@ public class ExportAsDOTCommand extends Command {
 
 	private void createDOTFile() {
 
+		IDOTLabelFactory labelFactory = new LabelFactoryVelocityImpl();
+		IDOTLabelFactory toolTipFactory = new TooltipFactoryVelocityImpl();		
 		GraphConverterServiceImpl graphConverterService = new GraphConverterServiceImpl();
+		graphConverterService.setLabelFactory(labelFactory);
+		graphConverterService.setToolTipFactory(toolTipFactory);
+		
 
 		Shell shell = new Shell(editPart.getViewer().getControl().getDisplay());
 		FileOutputStream result = null;

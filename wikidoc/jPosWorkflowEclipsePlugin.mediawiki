@@ -125,9 +125,9 @@ After adapting the previous transaction manager configuration excerpt to suit th
 	</group>
 </pre>
 
-After right-clicking configuration file ''20_txnmgr.xml'' in the Eclipse Package Explorer view, item menu  ''jPos Workflow -> view graph'' should show up. 
+After right-clicking configuration file ''20_txnmgr.xml'' in the Eclipse Package Explorer view, menu items ''jPos Workflow -> view ...'' should show up. 
 
-Left-clicking it should open a jPos Workflow view with a graphical representation of the selected configuration :
+Left-clicking one menu item should open a jPos Workflow view with a graphical representation of the selected configuration :
 [[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_dummy.jpg|align=center]]
 
 About this view : 
@@ -181,7 +181,7 @@ and here is GraphViz rendering of this DOT source :
 You may install the [http://sourceforge.net/projects/eclipsegraphviz/ Eclipse GraphViz plugin] for rendering inside your Eclipse IDE.
 
 =Context management informations=
-If your participant classes use [https://github.com/dgrandemange/context-mgmt-annotation context management annotations], the plugin detect it and extract informations from theses annotations.
+If your participant classes use [https://github.com/dgrandemange/context-mgmt-annotation context management annotations], the plugin detects it and extract informations from your annotated participants.
 
 ==About context management annotations==
 <p>These annotations are intented to be used on participant classes (implementing jPos TransactionParticipant or GroupSelector interfaces). In a few words, these annotations are a way to explicitly declare which context attributes a participant may update while being processed.</p>
@@ -316,3 +316,45 @@ The sample participant above is of type GroupSelector ant its context management
 [[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_ctxinfo_transition_non_guaranteed.jpg|align=center]]
 
 This may reveal helpful at some point of the workflow, when one of your participant need to get one attribute from the context, and you want make sure this attribute is present at that point.
+
+=Subflows=
+==What for ?==
+===jPos user "divide to rule" approach===
+<p>When jPos transaction manager configuration is growing, jPos users naturally tend to extract participants into external entities. From a user point of view, doing so eases the configuration reading and maintenance.</p>
+
+===jPos worflow plugin "divide to rule" approach===
+<p>When a jPos transaction manager configuration becomes consequent and the number of different possible paths is exponentially growing, the plugin execution time may increase, and eventually becomes unacceptable.</p>
+
+<p>It then becomes necessary to go for a "divide to rule" approach and identify in this big/all-mixed-up configuration if some parts could be identified as ''subflows'' and extracted into external entities.</p>
+
+<p>The plugin approach of a ''subflow'' is :
+*a ''subflow'' should be seen as a set of participant groups, with one group identified as the subflow entry point, 
+*when the ''subflow'' job is done, it simply stops, implicitely giving the control back to its parent flow,
+*a ''subflow'' shouldn't reference a group of its parent flow; still, it may at some point give the control to another subflow by reference this latter's entrypoint group.</p>
+
+====Implicitely giving the control back====
+Well, a straight strategy is : always get in your subflow a dedicated group (name it <your-subflow-name>EndPoint) that wraps a generic TransactionParticipant (not GroupSelector) that does nothing, and always redirect to it when your subflow job is done.
+
+In case you have a GroupSelector with one choice that should do nothing bu return to the parent flow, just set let this tranistion value empty. Here is an example with group <code>Financial_Suite1</code> and its transition <code>nok</code> :
+
+<pre>
+	<group name="Financial_Suite1">
+		<participant class="org.jpos.jposext.jposworkflow.sample.participant.CheckCurrency">
+			<property name="ok" value="Financial_Suite2" selectCriterion="checked" />
+			<property name="nok" value="" selectCriterion="unchecked" />
+		</participant>
+	</group>
+</pre>
+
+==Eclipse plugin implementation==
+The plugin provides now two modes.
+
+===The subflow mode===
+<p>When choosing the <code>view graph (entity refs as subflows)</code> menu item, the plugin will parse the transaction manager configuration and convert it into a(some) graph(s), considering all external entity references as subflows, and therefore converting them in independent (well not that much independent really) graphs. Computations times will significantly improves.</p>
+
+<p>When the main graph is showed in Eclipse editor, clicking on any nodes referencing a subflow will open a further Eclipse editor in wich the associated subflow graph will be shown. And so on ... You can then navigate from parents to childs flows.</p>
+
+<p>Note that on a subflow opening, context management informations available at this particular point are inherited by the subflow graph.</p>
+
+===The good old full-expanded mode===
+<p>When choosing the <code>view graph (expanded)</code> menu item, external entity references will be expanded when parsing the transaction manager configuration. Therefore no subflows will be identified, graph should show up in one Eclipse editor only.</p>

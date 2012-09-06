@@ -4,6 +4,9 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/jdom-1.0.jar" sourcepath="C:/Users/dgrandemange/.m2/repository/jdom/jdom/1.0/jdom-1.0-sources.jar"/>
-	<classpathentry kind="lib" path="lib/context-mgmt-annotation-1.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/velocity-1.7.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang-2.4.jar"/>
+	<classpathentry kind="lib" path="lib/jpos-workflow-commons.jar"/>
+	<classpathentry kind="lib" path="lib/context-mgmt-annotation.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

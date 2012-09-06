@@ -2,9 +2,6 @@ package org.jpos.jposext.jposworkflow.eclipse.popup.actions;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -23,10 +20,7 @@ import org.jpos.jposext.jposworkflow.eclipse.MyEditorInput;
 import org.jpos.jposext.jposworkflow.eclipse.MyGraphicalEditor;
 import org.jpos.jposext.jposworkflow.eclipse.service.support.ContextMgmtInfoPopulatorEclipsePluginImpl;
 import org.jpos.jposext.jposworkflow.model.Graph;
-import org.jpos.jposext.jposworkflow.model.ParticipantInfo;
-import org.jpos.jposext.jposworkflow.service.support.GraphReducerImpl;
-import org.jpos.jposext.jposworkflow.service.support.TxnMgrConfigParserImpl;
-import org.jpos.jposext.jposworkflow.service.support.TxnMgrGroupsConverterImpl;
+import org.jpos.jposext.jposworkflow.service.support.FacadeImpl;
 
 /**
  * @author dgrandemange
@@ -62,32 +56,16 @@ public class ViewGraphExpanded implements IObjectActionDelegate {
 		IFile selectedFile = (IFile) iresource;
 		IProject project = selectedFile.getProject();
 
-		Map<String, Graph> graphByEntityRef = new HashMap<String, Graph>();
-
-		TxnMgrConfigParserImpl txnMgrConfigParserImpl = new TxnMgrConfigParserImpl();
-		txnMgrConfigParserImpl.setGraphByEntityRef(graphByEntityRef);
-		TxnMgrGroupsConverterImpl converter = new TxnMgrGroupsConverterImpl();
-		GraphReducerImpl reducer = new GraphReducerImpl();
 		ContextMgmtInfoPopulatorEclipsePluginImpl ctxMgmtInfoPopulator = new ContextMgmtInfoPopulatorEclipsePluginImpl(
 				project);
 
 		try {
 			URL selectedUrl = selectedFile.getLocationURI().toURL();
-			txnMgrConfigParserImpl.setExpanded(true);
+			FacadeImpl facadeImpl = new FacadeImpl();
+			Graph graph = facadeImpl.getGraph(selectedUrl, ctxMgmtInfoPopulator) ;
 
-			Map<String, List<ParticipantInfo>> jPosTxnMgrGroups = txnMgrConfigParserImpl
-					.parse(selectedUrl);
-
-			ctxMgmtInfoPopulator
-					.processParticipantAnnotations(jPosTxnMgrGroups);
-			Graph graphInter1 = converter.toGraph(jPosTxnMgrGroups);
-			Graph graphInter2 = reducer.reduce(graphInter1);
-
-			// GraphHelper.dumpGraph(graphInter2, new PrintWriter(System.out));
-			ctxMgmtInfoPopulator.updateReducedGraph(graphInter2);
-			
 			MyEditorInput editorInput = new MyEditorInput(
-					selectedFile.getName(), graphInter2);
+					selectedFile.getName(), graph);
 			editorInput.setProject(project);
 			try {
 				MyGraphicalEditor openEditor = (MyGraphicalEditor) page
@@ -110,5 +88,5 @@ public class ViewGraphExpanded implements IObjectActionDelegate {
 	public void selectionChanged(IAction action, ISelection selection) {
 		this.selection = selection;
 	}
-
+	
 }
