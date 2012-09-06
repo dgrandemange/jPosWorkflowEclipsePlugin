@@ -332,25 +332,43 @@ This may reveal helpful at some point of the workflow, when one of your particip
 *when the ''subflow'' job is done, it simply stops, implicitely giving the control back to its parent flow,
 *a ''subflow'' shouldn't reference a group of its parent flow; still, it may at some point give the control to another subflow by reference this latter's entrypoint group.</p>
 
-====Implicitely giving the control back====
-Well, a straight strategy is : always get in your subflow a dedicated group (name it <your-subflow-name>EndPoint) that wraps a generic TransactionParticipant (not GroupSelector) that does nothing, and always redirect to it when your subflow job is done.
+<p>For the plugin to correctly handle external entities as subflows, you should observe the following rules.</p>
 
-In case you have a GroupSelector with one choice that should do nothing bu return to the parent flow, just set let this tranistion value empty. Here is an example with group <code>Financial_Suite1</code> and its transition <code>nok</code> :
+====Naming conventions====
+There's a tight connection between : 
+* the external entity name (i.e. <code>Financial.inc</code>),
+* the entity reference name (i.e. <code><nowiki>&</nowiki>Financial;</code>),
+* the subflow entry point group name (i.e. <code><group name="Financial"></code>) 
+
+So, good strategy is :
+# choose a ''subflow-name'' for your subflow,
+# ensure your external entity file is ''subflow-name'' with a <code>.inc</code> file extension,
+# in your external entity file, ensure your entry point group is named ''subflow-name'',
+
+By the way, ensure that all external entities references are declared in the main transaction manager XML configuration. It is better having one place for theses references instead of having half declared in the main config, and half spread out in external entities.
+
+====Implicitely give the control back to parent flow====
+This is more a design advice than a real rule.
+''Implicitely'' means here that when the subflow is done, it shouldn't reference a group of its parent flow, but should simply stops.
+
+In case you have a GroupSelector with one transition that should do nothing but return to the parent flow, just let this transition value empty. Here is an example with group <code>Financial_Suite1</code> and its transition <code>nok</code> :
 
 <pre>
-	<group name="Financial_Suite1">
-		<participant class="org.jpos.jposext.jposworkflow.sample.participant.CheckCurrency">
-			<property name="ok" value="Financial_Suite2" selectCriterion="checked" />
-			<property name="nok" value="" selectCriterion="unchecked" />
-		</participant>
-	</group>
+<group name="Financial_Suite1">
+	<participant class="org.jpos.jposext.jposworkflow.sample.participant.CheckCurrency">
+		<property name="ok" value="Financial_Suite2" selectCriterion="checked" />
+		<property name="nok" value="" selectCriterion="unchecked" />
+	</participant>
+</group>
 </pre>
 
-==Eclipse plugin implementation==
-The plugin provides now two modes.
+Another strategy is : for each subflow, get a dedicated group (name it ''your-subflow-name''EndPoint), wrapping a generic TransactionParticipant (not GroupSelector) that barely does nothing, and get your subflow participants redirect to it when there's nothing more to be done.
+
+==Eclipse plugin visualization of subflows==
+The Eclipse plugin provides now two modes.
 
 ===The subflow mode===
-<p>When choosing the <code>view graph (entity refs as subflows)</code> menu item, the plugin will parse the transaction manager configuration and convert it into a(some) graph(s), considering all external entity references as subflows, and therefore converting them in independent (well not that much independent really) graphs. Computations times will significantly improves.</p>
+<p>When choosing the <code>view graph (entity refs as subflows)</code> menu item, the plugin will parse the transaction manager configuration and convert it into a(some) graph(s), considering all external entity references as subflows, and therefore converting them in independent (well not that much independent really) graphs. Computations times should then improve.</p>
 
 <p>When the main graph is showed in Eclipse editor, clicking on any nodes referencing a subflow will open a further Eclipse editor in wich the associated subflow graph will be shown. And so on ... You can then navigate from parents to childs flows.</p>
 
