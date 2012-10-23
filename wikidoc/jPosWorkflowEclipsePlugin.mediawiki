@@ -180,150 +180,13 @@ and here is GraphViz rendering of this DOT source :
 
 You may install the [http://sourceforge.net/projects/eclipsegraphviz/ Eclipse GraphViz plugin] for rendering inside your Eclipse IDE.
 
-=Context management informations=
-If your participant classes use [https://github.com/dgrandemange/context-mgmt-annotation context management annotations], the plugin detects it and extract informations from your annotated participants.
-
-==About context management annotations==
-<p>These annotations are intented to be used on participant classes (implementing jPos TransactionParticipant or GroupSelector interfaces). In a few words, these annotations are a way to explicitly declare which context attributes a participant may update while being processed.</p>
-
-===Using annotations in participant : typical usage===
-
-<u>Sample participant class ''CheckRequiredFields'' :</u>
-<pre>
-package org.jpos.jposext.jposworkflow.sample.participant;
-
-import org.jpos.jposext.ctxmgmt.annotation.UpdateContextRule;
-import org.jpos.jposext.ctxmgmt.annotation.UpdateContextRules;
-import org.jpos.jposext.jposworkflow.sample.ICtxAttr;
-
-@UpdateContextRules({
-		@UpdateContextRule(attrNames = ICtxAttr.REQUIREDFLD_ATTR0),
-		@UpdateContextRule(id = CheckRequiredFields.TRANSITION__CHECKED_OK, attrNames = {ICtxAttr.REQUIREDFLD_ATTR1, ICtxAttr.REQUIREDFLD_ATTR2, ICtxAttr.REQUIREDFLD_ATTR3 }),
-		@UpdateContextRule(id = CheckRequiredFields.TRANSITION__CHECKED_KO, attrNames = {ICtxAttr.REQUIREDFLD_ATTR4, ICtxAttr.REQUIREDFLD_ATTR5 }) })
-public class CheckRequiredFields extends AbstractGroupSelectorParticipant {
-
-	public static final String TRANSITION__CHECKED_KO = "nok";
-	public static final String TRANSITION__CHECKED_OK = "ok";
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.jpos.jposext.jposworkflow.sample.participant.
-	 * AbstractGroupSelectorParticipant#prepare(long)
-	 */
-	public int prepare(long id) {
-
-		// always add attribute REQUIREDFLD_ATTR0 to context
-		ctxPutForId(UpdateContextRule.DEFAULT_ID, "value0");
-
-		// NB : method ctxPutForId() should be inherited from parent class
-		// AbstractGroupSelectorParticipant
-		// and knows how to update current transaction context using current
-		// class @UpdateContextRules annotation
-
-		return PREPARED | NO_JOIN;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.jpos.jposext.jposworkflow.sample.participant.
-	 * AbstractGroupSelectorParticipant#select(long)
-	 */
-	public String select(long id) {
-		String transitionId;
-		boolean checked = false;
-		// do checks here ...
-
-		if (checked) {
-			// Fields checked
-			transitionId = TRANSITION__CHECKED_OK;
-
-			// Update context according to @UpdateContextRule of id
-			// 'CHECKED_OK', passing respective attribute values as arguments
-			ctxPutForId(transitionId, "attr1value", "attr2value", "attr3value");
-		} else {
-			transitionId = TRANSITION__CHECKED_KO;
-
-			// Update context according to @UpdateContextRule of id
-			// 'CHECKED_KO', passing respective attribute values as arguments
-			ctxPutForId(transitionId, "attr4value", "attr5value");
-		}
-
-		// Looking in current participant configuration for next
-		// participants/groups
-		return getConfig().get(transitionId);
-	}
-
-}
-</pre>
-Note : context attribute names are externalized in a dedicated interface ''ICtxAttr''.
-
-<u>Interface ''ICtxAttr'' :</u>
-<pre>
-package org.jpos.jposext.jposworkflow.sample;
-
-public interface ICtxAttr {
-	
-	public static final String REQUIREDFLD_ATTR0 = "requiredfld.attr0";
-	public static final String REQUIREDFLD_ATTR1 = "requiredfld.attr1";
-	public static final String REQUIREDFLD_ATTR2 = "requiredfld.attr2";
-	public static final String REQUIREDFLD_ATTR3 = "requiredfld.attr3";
-	public static final String REQUIREDFLD_ATTR4 = "requiredfld.attr4";
-	public static final String REQUIREDFLD_ATTR5 = "requiredfld.attr5";
-	
-	public static final String CURRENCY_ATTR0 = "currency.attr0";
-	public static final String CURRENCY_ATTR1 = "currency.attr1";
-	public static final String CURRENCY_ATTR2 = "currency.attr2";
-	public static final String CURRENCY_ATTR3 = "currency.attr3";
-	public static final String CURRENCY_ATTR4 = "currency.attr4";
-	public static final String CURRENCY_ATTR5 = "currency.attr5";
-}
-</pre>
-
-The sample participant above is of type GroupSelector ant its context management annotations specifie that :
-# participant processing should always end with and attribute <code>ICtxAttr.REQUIREDFLD_ATTR0</code> added to the context,
-# in case check is ok <code>id = CheckRequiredFields.TRANSITION__CHECKED_OK</code>, participant processing should also add attributes <code>ICtxAttr.REQUIREDFLD_ATTR1, ICtxAttr.REQUIREDFLD_ATTR2, ICtxAttr.REQUIREDFLD_ATTR3</code> to the context,
-# in case check is ko <code>id = CheckRequiredFields.TRANSITION__CHECKED_KO</code>, participant processing should also add attributes <code>ICtxAttr.REQUIREDFLD_ATTR1, ICtxAttr.REQUIREDFLD_ATTR2, ICtxAttr.REQUIREDFLD_ATTR3</code> to the context, 
-
-===Using context management annotations to enforce design rules ===
-<p>Well it's only about annotations, and it does not ensure at all that the developper effectively update the context accordingly to the rules wrapped in these annotations. These are merely specifications, nothing else.</p>
-
-<p>Therefore, it may be a good idea to let the participant delegate the context management to a service or something that relies on the context management annotations (through reflection) to do this job, and restrict direct access to the transaction context object from the participant's methods.</p>
-
-<p>In the sample participant above, we have chosen to make it inherit an abstract class AbstractGroupSelectorParticipant that cares about this concern. The ''prepare()'' and ''select()'' methods don't provide the transaction context anymore. A single method <code>void ctxPutForId(String transitionId, Object...attributesValues)</code> is available to update the context.</p>
-
-<p>More over, having a dedicated annotation processor that makes some various consistency checks at compilation time may also reveal very useful.</p>
-
-==Plugin use of context management annotations==
-===Participant node===
-<p>Mousing over a simple TransactionParticipant node, it shows the list of context attributes that are updated by the participant.</p>
-<p>Dealing with a GroupSelector, depending on the outcome transition, extra context attributes may be updated. Mousing over such node, it shows the list of context attributes indexed by outcomed transition.</p>
-
-<u>Mousing over the '''CheckRequiredFields''' participant node :</u>
-[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_ctxinfo_participant.jpg|align=center]]
-
-===Transition edge===
-<p>Mousing over a transition edge shows up every attributes that are guaranteed to be present in the context at this point of the workflow.</p>
-
-<u>Mousing over the transition '''ok''' binding source node '''CheckRequiredFields''' to target node '''CheckCurrency''' :</u>
-[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_ctxinfo_transition_guaranteed.jpg|align=center]]
-
-<p>Now, as the graph is reduced (common branches of the original graph tree are merged as much as possible), looking to the end of the workflow of our switch transaction manager configuration above, we can see just one ''Response'' participant with a transition to one ''Log'' participant. That's because this part is common to every processing (athorization, notification, finanacial, reversal, ...). Looking back at the beginning of the workflow, the ''authorization'' processing may put some particular attributes in the context whereas the ''notification'' processing may put some others. And maybe they also both share some commons attributes in the process.</p>
-<p>Mousing over the late transition of the workflow, plugin shows not only the common attributes guaranteed to be set in the context, but also the ones that may be set somewhere in the parent branches. Special icons distinguish guaranteed attributes from non-guaranteed ones.</p>
-
-<u>Mousing over the default transition binding source node '''Response''' to target node '''Log''' :</u>
-[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_ctxinfo_transition_non_guaranteed.jpg|align=center]]
-
-This may reveal helpful at some point of the workflow, when one of your participant need to get one attribute from the context, and you want make sure this attribute is present at that point.
-
 =Subflows=
 ==What for ?==
 ===jPos user "divide to rule" approach===
 <p>When jPos transaction manager configuration is growing, jPos users naturally tend to extract participants into external entities. From a user point of view, doing so eases the configuration reading and maintenance.</p>
 
 ===jPos worflow plugin "divide to rule" approach===
-<p>When a jPos transaction manager configuration becomes consequent and the number of different possible paths is exponentially growing, the plugin execution time may increase, and eventually becomes unacceptable.</p>
+<p>When a jPos transaction manager configuration becomes consequent and the number of different possible paths is exponentially growing, the plugin execution time may increase, and may even become unacceptable.</p>
 
 <p>It then becomes necessary to go for a "divide to rule" approach and identify in this big/all-mixed-up configuration if some parts could be identified as ''subflows'' and extracted into external entities.</p>
 
@@ -332,7 +195,7 @@ This may reveal helpful at some point of the workflow, when one of your particip
 *when the ''subflow'' job is done, it simply stops, implicitely giving the control back to its parent flow,
 *a ''subflow'' shouldn't reference a group of its parent flow; still, it may at some point give the control to another subflow by reference this latter's entrypoint group.</p>
 
-<p>For the plugin to correctly handle external entities as subflows, you should observe the following rules.</p>
+<p>For the plugin to correctly handle external entities as subflows, your configuration should be respectful of the following rules.</p>
 
 ====Naming conventions====
 There's a tight connection between : 
@@ -372,7 +235,39 @@ The Eclipse plugin provides now two modes.
 
 <p>When the main graph is showed in Eclipse editor, clicking on any nodes referencing a subflow will open a further Eclipse editor in wich the associated subflow graph will be shown. And so on ... You can then navigate from parents to childs flows.</p>
 
-<p>Note that on a subflow opening, context management informations available at this particular point are inherited by the subflow graph.</p>
+<p>Note that on a subflow opening, context management informations available at this particular point of the parent flow are inherited by the subflow graph.</p>
 
 ===The good old full-expanded mode===
 <p>When choosing the <code>view graph (expanded)</code> menu item, external entity references will be expanded when parsing the transaction manager configuration. Therefore no subflows will be identified, graph should show up in one Eclipse editor only.</p>
+
+=Context management annotations handling=
+<p>Context management annotations are intented to be used on participant classes (implementing jPos TransactionParticipant or GroupSelector interfaces). In a few words, these annotations are a way to specify which context attributes a participant may set while being processed.</p>
+
+<p>More information available on the [https://github.com/dgrandemange/context-mgmt-annotation/wiki context management annotations project wiki page].</p>
+
+<p>If your participant classes use [https://github.com/dgrandemange/context-mgmt-annotation context management such annotations], the plugin detects it and extracts context management specifications from them.</p>
+
+==Context management specifications vizualisation==
+===Transition edge===
+<p>Mousing over a transition edge, it lists the context attributes set by parent node when this transition has been selected.</p>
+
+<u>Mousing over a '''ok''' transition binding source node '''CheckRequiredFields''' to target node '''CheckCurrency''' :</u>
+[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_ctxinfo_transition_CheckRequiredFields_ok.jpg|align=center]]
+
+===Participant node===
+<p>Mousing over a simple participant node of the flow, the plugin lists the available context attributes <b>at that particular point of the flow</b> : depending on the path that leads to that point, some context attributes presence may be guaranteed ([[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/ctx-attr-guaranteed.jpg]] mark), and some others may be or may not be present  ([[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/ctx-attr-optional.jpg]] mark).</p>
+
+<u>Mousing over a '''CheckCurrency''' participant node :</u>
+[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_ctxinfo_participant_CheckCurrency.jpg|align=center]]
+
+<p>Now, as the graph is reduced (common branches of the original graph tree are merged as much as possible), looking to the end of the workflow of our switch transaction manager configuration above, we can see just one ''Response'' participant with a transition to one ''Log'' participant. That's because this part is common to every processing (authorization, notification, financial, reversal, ...). Looking back at the beginning of the flow, the ''authorization'' processing may put some particular attributes in the context whereas the ''notification'' processing may put some others. And maybe they also both share some commons attributes in the process.</p>
+<p>Mousing over the late transition of the workflow, plugin shows not only the common attributes guaranteed to be set in the context, but also the ones that may be set somewhere in the parent branches. Special marks distinguish guaranteed attributes from non-guaranteed ones.</p>
+
+<u>Mousing over the '''Response''' participant :</u>
+[[https://github.com/dgrandemange/jPosWorkflowEclipsePlugin/raw/master/wikidoc/workflowplugin_ctxinfo_participant_Response.jpg|align=center]]
+
+<p>Such info may reveal helpful at development phase, when one of your participant need to get one attribute from the context, and you want to make sure this attribute is set at that particular point of the flow.</p>
+
+=Related projects=
+*[[https://github.com/dgrandemange/jpos-workflow-commons jpos-workflow-commons]] : a common library providing jPos transaction manager configuration to graph(s) conversion facilities; actually used by this Eclipse plugin,
+*[[https://github.com/dgrandemange/jpos-workflow-cli jpos-workflow-cli]] : an alternative to this Eclipse plugin. Implemented as a jPos CLI command, it converts a jPos transaction manager configuration to DOT graph(s) you can further vizualized through graphviz or convert to other formats like SVG; see jpos-workflow-cli demo,
