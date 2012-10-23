@@ -243,9 +243,9 @@ The Eclipse plugin provides now two modes.
 =Context management annotations handling=
 <p>Context management annotations are intented to be used on participant classes (implementing jPos TransactionParticipant or GroupSelector interfaces). In a few words, these annotations are a way to specify which context attributes a participant may set while being processed.</p>
 
-<p>More information available on the [https://github.com/dgrandemange/context-mgmt-annotation/wiki context management annotations project wiki page].</p>
+<p>If your participant classes use such annotations, the plugin detects it and extracts context management specifications from them.</p>
 
-<p>If your participant classes use [https://github.com/dgrandemange/context-mgmt-annotation context management such annotations], the plugin detects it and extracts context management specifications from them.</p>
+<p>More information available on the [https://github.com/dgrandemange/context-mgmt-annotation/wiki context management annotations project wiki page].</p>
 
 ==Context management specifications vizualisation==
 ===Transition edge===
@@ -269,5 +269,6 @@ The Eclipse plugin provides now two modes.
 <p>Such info may reveal helpful at development phase, when one of your participant need to get one attribute from the context, and you want to make sure this attribute is set at that particular point of the flow.</p>
 
 =Related projects=
-*[[https://github.com/dgrandemange/jpos-workflow-commons jpos-workflow-commons]] : a common library providing jPos transaction manager configuration to graph(s) conversion facilities; actually used by this Eclipse plugin,
-*[[https://github.com/dgrandemange/jpos-workflow-cli jpos-workflow-cli]] : an alternative to this Eclipse plugin. Implemented as a jPos CLI command, it converts a jPos transaction manager configuration to DOT graph(s) you can further vizualized through graphviz or convert to other formats like SVG; see jpos-workflow-cli demo,
+*[https://github.com/dgrandemange/jpos-workflow-commons jpos-workflow-commons] : a common library providing jPos transaction manager configuration to graph(s) conversion facilities; actually used by this Eclipse plugin; can surely be used to create an IntelliJ IDEA plugin using its open graph API,
+*[https://github.com/dgrandemange/jpos-workflow-cli jpos-workflow-cli] : an alternative to this Eclipse plugin. Implemented as a jPos CLI command, it converts a jPos transaction manager configuration to DOT graph(s) you can further vizualize through graphviz or convert to other formats (SVG, ...),
+*[https://github.com/dgrandemange/context-mgmt-annotation context-mgmt-annotation] : annotations for context management
