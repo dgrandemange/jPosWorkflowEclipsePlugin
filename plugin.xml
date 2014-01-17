@@ -41,17 +41,23 @@
             <separator name="group1"/>
          </menu>
          <action
-               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphNotExpanded"
-               enablesFor="1"
-               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.1.viewGraphNotExpanded"
-               label="view graph (entity refs as subflows)"
-               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>
-         <action
                class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphExpanded"
                enablesFor="1"
                id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.2.viewGraphExpanded"
                label="view graph (expanded)"
-               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>               
+               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>   
+         <action
+               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphEntityRefsAsSubflowMode"
+               enablesFor="1"
+               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.1.viewGraphEntityRefsAsSubflowMode"
+               label="view graph (entity refs as subflows)"
+               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>            
+         <action
+               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphSubflowMode"
+               enablesFor="1"
+               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.1.viewGraphSubflowMode"
+               label="view graph"
+               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>         
       </objectContribution>
    </extension>
    <extension
@@ -67,17 +73,23 @@
             <separator name="group1"/>
          </menu>
          <action
-               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphNotExpanded"
-               enablesFor="1"
-               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.1.viewGraphNotExpanded"
-               label="view graph (entity refs as subflows)"
-               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>
-         <action
                class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphExpanded"
                enablesFor="1"
                id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.2.viewGraphExpanded"
                label="view graph (expanded)"
-               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>                              
+               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>   
+         <action
+               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphEntityRefsAsSubflowMode"
+               enablesFor="1"
+               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.1.viewGraphEntityRefsAsSubflowMode"
+               label="view graph (entity refs as subflows)"
+               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>            
+         <action
+               class="org.jpos.jposext.jposworkflow.eclipse.popup.actions.ViewGraphSubflowMode"
+               enablesFor="1"
+               id="org.jpos.jposext.jposworkflow.eclipse.popup.actions.1.viewGraphSubflowMode"
+               label="view graph"
+               menubarPath="org.jpos.jposext.jposworkflow.eclipse.menu1/group1"/>                           
       </objectContribution>
    </extension>
 </plugin>

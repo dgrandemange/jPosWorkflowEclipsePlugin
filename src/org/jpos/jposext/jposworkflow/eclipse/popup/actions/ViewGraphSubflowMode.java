@@ -28,14 +28,14 @@ import org.jpos.jposext.jposworkflow.service.support.FacadeImpl;
  * @author dgrandemange
  * 
  */
-public class ViewGraphNotExpanded implements IObjectActionDelegate {
+public class ViewGraphSubflowMode implements IObjectActionDelegate {
 
 	private ISelection selection;
 
 	/**
 	 * Constructor for Action1.
 	 */
-	public ViewGraphNotExpanded() {
+	public ViewGraphSubflowMode() {
 		super();
 	}
 
