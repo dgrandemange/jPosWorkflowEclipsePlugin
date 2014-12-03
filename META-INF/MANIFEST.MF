@@ -10,7 +10,7 @@ Bundle-ClassPath: .,
  lib/commons-collections-3.2.1.jar,
  lib/commons-lang-2.4.jar,
  lib/context-mgmt-annotation-1.0.jar,
- lib/jpos-workflow-commons-1.0.4-SNAPSHOT.jar
+ lib/jpos-workflow-commons-1.0.4.jar
 Bundle-Activator: org.jpos.jposext.jposworkflow.eclipse.Activator
 Bundle-Localization: plugin
 Export-Package: org.jpos.jposext.jposworkflow.eclipse,
